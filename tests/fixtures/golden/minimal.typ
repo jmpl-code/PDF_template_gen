@@ -37,4 +37,22 @@
 #show heading.where(level: 4): set text(size: 12pt, weight: "bold")
 #show heading.where(level: 4): set block(above: 1.2em, below: 0.6em)
 
-// Contenu injecte par le generateur Python ci-dessous
+// --- BEGIN CONTENT ---
+
+= Introduction
+
+Ceci est le contenu du premier chapitre.
+
+== Section 1
+
+Un paragraphe avec du texte explicatif.
+
+#align(center)[#image("PLACEHOLDER_IMAGE_PATH", width: 80%)]
+
+#table(
+  columns: 2,
+  [Colonne A], [Colonne B],
+  [valeur 1], [valeur 2],
+  [valeur 3], [valeur 4],
+)
+
