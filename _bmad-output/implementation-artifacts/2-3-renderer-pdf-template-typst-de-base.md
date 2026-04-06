@@ -1,6 +1,6 @@
 # Story 2.3 : Renderer PDF — Template Typst de base
 
-Status: review
+Status: done
 
 ## Story
 

@@ -1,4 +1,4 @@
-"""Renderer PDF via typst compile (Stories 2.3, 2.4)."""
+"""Renderer PDF via typst compile (Stories 2.3, 2.4, 2.5)."""
 
 from __future__ import annotations
 
@@ -128,16 +128,12 @@ def _render_table(table: TableNode) -> str:
         logger.warning("Empty table at %s:%d, skipping", table.source_file, table.line_number)
         return ""
     lines: list[str] = [f"#table(\n  columns: {col_count},\n"]
-    header_cells = ", ".join(
-        f"[{escape_typst(h)}]" for h in table.headers
-    )
+    header_cells = ", ".join(f"[{escape_typst(h)}]" for h in table.headers)
     lines.append(f"  {header_cells},\n")
     for row in table.rows:
         if not row:
             continue
-        row_cells = ", ".join(
-            f"[{escape_typst(cell)}]" for cell in row
-        )
+        row_cells = ", ".join(f"[{escape_typst(cell)}]" for cell in row)
         lines.append(f"  {row_cells},\n")
     lines.append(")\n\n")
     return "".join(lines)
@@ -146,14 +142,10 @@ def _render_table(table: TableNode) -> str:
 def _render_title_page(config: BookConfig) -> str:
     """Genere la page de titre Typst."""
     parts: list[str] = ["#align(center + horizon)[\n"]
-    parts.append(
-        f'  #text(size: 28pt, weight: "bold")[{escape_typst(config.titre)}]\n'
-    )
+    parts.append(f'  #text(size: 28pt, weight: "bold")[{escape_typst(config.titre)}]\n')
     if config.sous_titre:
         parts.append("  #v(1em)\n")
-        parts.append(
-            f"  #text(size: 18pt)[{escape_typst(config.sous_titre)}]\n"
-        )
+        parts.append(f"  #text(size: 18pt)[{escape_typst(config.sous_titre)}]\n")
     parts.append("  #v(4em)\n")
     parts.append(f"  #text(size: 16pt)[{escape_typst(config.auteur)}]\n")
     parts.append("]\n")
@@ -165,10 +157,7 @@ def _render_copyright_page(config: BookConfig) -> str:
     year = datetime.date.today().year
     parts: list[str] = ["#align(bottom)[\n"]
     parts.append("  #set text(size: 9pt)\n")
-    parts.append(
-        f"  \\u{{00A9}} {year} {escape_typst(config.auteur)}."
-        " Tous droits reserves.\n"
-    )
+    parts.append(f"  \\u{{00A9}} {year} {escape_typst(config.auteur)}. Tous droits reserves.\n")
     if config.isbn:
         parts.append("  #linebreak()\n")
         parts.append(f"  ISBN : {escape_typst(config.isbn)}\n")
@@ -178,19 +167,12 @@ def _render_copyright_page(config: BookConfig) -> str:
 
 def _render_dedication_page(dedicace: str) -> str:
     """Genere la page de dedicace Typst."""
-    return (
-        "#align(center + horizon)[\n"
-        f"  #emph[{escape_typst(dedicace)}]\n"
-        "]\n"
-    )
+    return f"#align(center + horizon)[\n  #emph[{escape_typst(dedicace)}]\n]\n"
 
 
 def _render_toc() -> str:
     """Genere la table des matieres Typst."""
-    return (
-        '#heading(outlined: false, level: 1)[Table des matieres]\n'
-        "#outline(indent: auto)\n"
-    )
+    return "#heading(outlined: false, level: 1)[Table des matieres]\n#outline(indent: auto)\n"
 
 
 def _render_front_matter(config: BookConfig) -> str:
@@ -211,21 +193,66 @@ def _render_front_matter(config: BookConfig) -> str:
     # Table des matieres
     parts.append(_render_toc())
     parts.append("\n#pagebreak()\n\n")
-    # Reactiver la numerotation arabe et reset a page 1
-    parts.append('#set page(numbering: "1")\n')
-    parts.append("#counter(page).update(1)\n\n")
+    # Numerotation et headers sont actives par _render_running_headers()
     return "".join(parts)
 
 
+def _render_chapter_title_page(chapter: ChapterNode) -> str:
+    """Genere la page de garde d'un chapitre."""
+    logger.debug("Generating chapter title page: %s", chapter.title)
+    return (
+        "#pagebreak(weak: true)\n"
+        "#align(center + horizon)[\n"
+        f'  #text(size: 28pt, weight: "bold")[{escape_typst(chapter.title)}]\n'
+        "] <chapter-start>\n"
+        "#pagebreak()\n\n"
+    )
+
+
+def _render_running_headers(config: BookConfig) -> str:
+    """Active les en-tetes/pieds de page et la numerotation arabe."""
+    book_title = escape_typst(config.titre)
+    return (
+        "// En-tetes et pieds de page (Story 2.5)\n"
+        "#set page(\n"
+        '  numbering: "1",\n'
+        "  header: context {\n"
+        "    let start-matches = query(<chapter-start>)\n"
+        "    let current = counter(page).get()\n"
+        "    let is-chapter-start = start-matches.any(m =>\n"
+        "      counter(page).at(m.location()) == current\n"
+        "    )\n"
+        "    if not is-chapter-start {\n"
+        "      let chapters = query(selector(heading.where(level: 1)).before(here()))\n"
+        "      let chapter-title = if chapters.len() > 0 {\n"
+        "        chapters.last().body\n"
+        "      } else { [] }\n"
+        f"      emph[{book_title}]\n"
+        "      h(1fr)\n"
+        "      emph[#chapter-title]\n"
+        "    }\n"
+        "  },\n"
+        "  footer: context {\n"
+        '    align(center)[#counter(page).display("1")]\n'
+        "  },\n"
+        ")\n"
+        "#counter(page).update(1)\n\n"
+    )
+
+
 def _render_chapter(
-    chapter: ChapterNode, is_first: bool, typ_dir: Path,
+    chapter: ChapterNode,
+    is_first: bool,
+    typ_dir: Path,
+    *,
+    has_chapter_pages: bool = False,
 ) -> str:
     """Genere le Typst pour un chapitre."""
     parts: list[str] = []
-    if not is_first:
+    if has_chapter_pages:
+        parts.append(_render_chapter_title_page(chapter))
+    elif not is_first:
         parts.append("#pagebreak()\n\n")
-    # Le titre chapitre est rendu par le HeadingNode level 1 dans children
-    # Pas de doublon ici — seul le pagebreak est gere
     for child in chapter.children:
         parts.append(_render_node(child, typ_dir))
     return "".join(parts)
@@ -239,11 +266,18 @@ def generate_typst(
     """Genere un fichier .typ depuis l'AST BookNode."""
     typ_dir = output_path.resolve().parent
     content_parts: list[str] = [_BASE_TEMPLATE, "\n"]
+    has_chapter_pages = config is not None
     if config is not None:
         content_parts.append(_render_front_matter(config))
+        content_parts.append(_render_running_headers(config))
     for i, chapter in enumerate(book.chapters):
         content_parts.append(
-            _render_chapter(chapter, is_first=(i == 0), typ_dir=typ_dir),
+            _render_chapter(
+                chapter,
+                is_first=(i == 0),
+                typ_dir=typ_dir,
+                has_chapter_pages=has_chapter_pages,
+            ),
         )
     output_path.write_text("".join(content_parts), encoding="utf-8")
     logger.debug("Generated .typ file: %s", output_path)

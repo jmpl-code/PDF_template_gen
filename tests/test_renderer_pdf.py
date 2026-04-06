@@ -1,4 +1,4 @@
-"""Tests du renderer PDF Typst (Stories 2.3, 2.4)."""
+"""Tests du renderer PDF Typst (Stories 2.3, 2.4, 2.5)."""
 
 import shutil
 from pathlib import Path
@@ -48,24 +48,32 @@ def _make_book(tmp_path: Path) -> BookNode:
                 title="Introduction",
                 children=(
                     HeadingNode(
-                        level=1, text="Introduction",
-                        source_file=source, line_number=1,
+                        level=1,
+                        text="Introduction",
+                        source_file=source,
+                        line_number=1,
                     ),
                     ParagraphNode(
                         text="Ceci est le contenu du premier chapitre.",
-                        source_file=source, line_number=3,
+                        source_file=source,
+                        line_number=3,
                     ),
                     HeadingNode(
-                        level=2, text="Section 1",
-                        source_file=source, line_number=5,
+                        level=2,
+                        text="Section 1",
+                        source_file=source,
+                        line_number=5,
                     ),
                     ParagraphNode(
                         text="Un paragraphe avec du texte explicatif.",
-                        source_file=source, line_number=7,
+                        source_file=source,
+                        line_number=7,
                     ),
                     ImageNode(
-                        src=dest_img, alt="Diagramme exemple",
-                        source_file=source, line_number=9,
+                        src=dest_img,
+                        alt="Diagramme exemple",
+                        source_file=source,
+                        line_number=9,
                     ),
                     TableNode(
                         headers=("Colonne A", "Colonne B"),
@@ -104,16 +112,21 @@ def _make_book_in(output_dir: Path) -> BookNode:
                 title="Introduction",
                 children=(
                     HeadingNode(
-                        level=1, text="Introduction",
-                        source_file=source, line_number=1,
+                        level=1,
+                        text="Introduction",
+                        source_file=source,
+                        line_number=1,
                     ),
                     ParagraphNode(
                         text="Hello world",
-                        source_file=source, line_number=3,
+                        source_file=source,
+                        line_number=3,
                     ),
                     ImageNode(
-                        src=dest_img, alt="Diagramme",
-                        source_file=source, line_number=5,
+                        src=dest_img,
+                        alt="Diagramme",
+                        source_file=source,
+                        line_number=5,
                     ),
                 ),
                 source_file=source,
@@ -191,7 +204,8 @@ class TestGenerateTypst:
     """Tests de la generation du fichier .typ."""
 
     def test_generate_typst_valid_ast_produces_typ_file(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         book = _make_book(tmp_path)
         typ_path = tmp_path / "output.typ"
@@ -202,7 +216,8 @@ class TestGenerateTypst:
         assert len(content) > 0
 
     def test_generate_typst_contains_template_preamble(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         book = _make_book(tmp_path)
         typ_path = tmp_path / "output.typ"
@@ -214,7 +229,8 @@ class TestGenerateTypst:
         assert "// --- BEGIN CONTENT ---" in content
 
     def test_generate_typst_all_node_types_rendered(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         book = _make_book(tmp_path)
         typ_path = tmp_path / "output.typ"
@@ -236,7 +252,8 @@ class TestGenerateTypst:
         assert "valeur 1" in content
 
     def test_generate_typst_no_duplicate_chapter_title(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """C1 fix: le titre chapitre ne doit pas etre duplique."""
         book = _make_book(tmp_path)
@@ -248,7 +265,8 @@ class TestGenerateTypst:
         assert count == 1, f"Titre duplique: {count} occurrences"
 
     def test_generate_typst_escapes_special_characters(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         source = MINIMAL_DIR / "chapitres" / "01-introduction.md"
         book = BookNode(
@@ -259,7 +277,8 @@ class TestGenerateTypst:
                     children=(
                         ParagraphNode(
                             text="prix #1 et coût $5",
-                            source_file=source, line_number=1,
+                            source_file=source,
+                            line_number=1,
                         ),
                     ),
                     source_file=source,
@@ -275,7 +294,8 @@ class TestGenerateTypst:
         assert "prix \\#1 et coût \\$5" in content
 
     def test_generate_typst_deterministic_output(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         book = _make_book(tmp_path)
         typ1 = tmp_path / "output1.typ"
@@ -287,7 +307,8 @@ class TestGenerateTypst:
         )
 
     def test_generate_typst_content_matches_golden_file(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         book = _make_book(tmp_path)
         typ_path = tmp_path / "output.typ"
@@ -300,18 +321,13 @@ class TestGenerateTypst:
 
         golden = golden_path.read_text(encoding="utf-8")
         # Les chemins images varient — on compare tout sauf ces lignes
-        actual_lines = [
-            line for line in actual.splitlines()
-            if '#image("' not in line
-        ]
-        golden_lines = [
-            line for line in golden.splitlines()
-            if '#image("' not in line
-        ]
+        actual_lines = [line for line in actual.splitlines() if '#image("' not in line]
+        golden_lines = [line for line in golden.splitlines() if '#image("' not in line]
         assert actual_lines == golden_lines
 
     def test_generate_typst_chapter_pagebreak(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         source = MINIMAL_DIR / "chapitres" / "01-introduction.md"
         book = BookNode(
@@ -321,8 +337,10 @@ class TestGenerateTypst:
                     title="Chapitre 1",
                     children=(
                         HeadingNode(
-                            level=1, text="Chapitre 1",
-                            source_file=source, line_number=1,
+                            level=1,
+                            text="Chapitre 1",
+                            source_file=source,
+                            line_number=1,
                         ),
                     ),
                     source_file=source,
@@ -332,8 +350,10 @@ class TestGenerateTypst:
                     title="Chapitre 2",
                     children=(
                         HeadingNode(
-                            level=1, text="Chapitre 2",
-                            source_file=source, line_number=1,
+                            level=1,
+                            text="Chapitre 2",
+                            source_file=source,
+                            line_number=1,
                         ),
                     ),
                     source_file=source,
@@ -355,7 +375,8 @@ class TestGenerateTypst:
         assert "#pagebreak()" in before_second
 
     def test_generate_typst_image_outside_dir_raises_error(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """C2 fix: image hors du repertoire .typ leve RenderError."""
         source = MINIMAL_DIR / "chapitres" / "01-introduction.md"
@@ -372,8 +393,10 @@ class TestGenerateTypst:
                     title="Ch",
                     children=(
                         ImageNode(
-                            src=foreign_img, alt="test",
-                            source_file=source, line_number=1,
+                            src=foreign_img,
+                            alt="test",
+                            source_file=source,
+                            line_number=1,
                         ),
                     ),
                     source_file=source,
@@ -397,7 +420,8 @@ class TestCompileTypst:
     """Tests de la compilation Typst."""
 
     def test_compile_typst_missing_binary_raises_render_error(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         typ_path = tmp_path / "test.typ"
         typ_path.write_text("Hello", encoding="utf-8")
@@ -406,10 +430,12 @@ class TestCompileTypst:
             "Compilation Typst vers PDF: commande 'typst' introuvable",
         )
         with patch(
-            "bookforge.renderers.pdf.run_external", side_effect=err,
+            "bookforge.renderers.pdf.run_external",
+            side_effect=err,
         ):
             with pytest.raises(
-                RenderError, match="commande 'typst' introuvable",
+                RenderError,
+                match="commande 'typst' introuvable",
             ):
                 compile_typst(typ_path, pdf_path)
 
@@ -420,7 +446,7 @@ class TestCompileTypst:
     def test_compile_typst_produces_pdf(self, tmp_path: Path) -> None:
         typ_path = tmp_path / "test.typ"
         typ_path.write_text(
-            '#set page(width: 6in, height: 9in)\nHello World\n',
+            "#set page(width: 6in, height: 9in)\nHello World\n",
             encoding="utf-8",
         )
         pdf_path = tmp_path / "test.pdf"
@@ -438,7 +464,8 @@ class TestRenderPdf:
     """Tests d'integration du renderer PDF complet."""
 
     def test_render_pdf_preserves_intermediate_file(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         output_dir = tmp_path / "output"
         book = _make_book_in(output_dir)
@@ -451,7 +478,8 @@ class TestRenderPdf:
         assert typ_path.exists()
 
     def test_render_pdf_creates_output_dir(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         output_dir = tmp_path / "new" / "output"
         assert not output_dir.exists()
@@ -468,7 +496,8 @@ class TestRenderPdf:
         reason="Typst non installe",
     )
     def test_render_pdf_produces_valid_pdf(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         output_dir = tmp_path / "output"
         images_dir = output_dir / "images"
@@ -485,16 +514,21 @@ class TestRenderPdf:
                     title="Introduction",
                     children=(
                         HeadingNode(
-                            level=1, text="Introduction",
-                            source_file=source, line_number=1,
+                            level=1,
+                            text="Introduction",
+                            source_file=source,
+                            line_number=1,
                         ),
                         ParagraphNode(
                             text="Hello world",
-                            source_file=source, line_number=2,
+                            source_file=source,
+                            line_number=2,
                         ),
                         ImageNode(
-                            src=dest_img, alt="test",
-                            source_file=source, line_number=3,
+                            src=dest_img,
+                            alt="test",
+                            source_file=source,
+                            line_number=3,
                         ),
                     ),
                     source_file=source,
@@ -519,7 +553,8 @@ class TestFrontMatter:
     """Tests des pages liminaires et de la table des matieres."""
 
     def test_generate_typst_includes_title_page(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """AC #2 : la page de titre contient titre et auteur."""
         book = _make_book(tmp_path)
@@ -532,7 +567,8 @@ class TestFrontMatter:
         assert 'size: 28pt, weight: "bold"' in content
 
     def test_generate_typst_includes_subtitle(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """AC #2 : le sous-titre est affiche si present."""
         book = _make_book(tmp_path)
@@ -543,7 +579,8 @@ class TestFrontMatter:
         assert "Sous-titre Test" in content
 
     def test_generate_typst_no_subtitle_when_none(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """Pas de sous-titre si non configure."""
         book = _make_book(tmp_path)
@@ -556,7 +593,8 @@ class TestFrontMatter:
         assert "#text(size: 18pt)[" not in content
 
     def test_generate_typst_includes_copyright_page(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """AC #2 : la page de copyright est presente."""
         book = _make_book(tmp_path)
@@ -570,7 +608,8 @@ class TestFrontMatter:
         assert "978-2-1234-5678-0" in content
 
     def test_generate_typst_copyright_no_isbn(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """Copyright sans ISBN si non configure."""
         book = _make_book(tmp_path)
@@ -582,7 +621,8 @@ class TestFrontMatter:
         assert "ISBN" not in content
 
     def test_generate_typst_includes_dedication_when_configured(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """AC #3 : dedicace presente si configuree."""
         book = _make_book(tmp_path)
@@ -594,7 +634,8 @@ class TestFrontMatter:
         assert "#emph[" in content
 
     def test_generate_typst_no_dedication_when_not_configured(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """AC #3 : pas de dedicace si non configuree."""
         book = _make_book(tmp_path)
@@ -605,7 +646,8 @@ class TestFrontMatter:
         assert "#emph[" not in content
 
     def test_generate_typst_includes_outline(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """AC #1, #5 : la TDM est presente avec #outline."""
         book = _make_book(tmp_path)
@@ -617,7 +659,8 @@ class TestFrontMatter:
         assert "Table des matieres" in content
 
     def test_generate_typst_front_matter_order(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """AC #4 : ordre titre < copyright < TDM < contenu."""
         book = _make_book(tmp_path)
@@ -633,7 +676,8 @@ class TestFrontMatter:
         assert title_pos < copyright_pos < dedication_pos < toc_pos < chapter_pos
 
     def test_generate_typst_page_numbering_reset(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """AC #6 : numerotation desactivee pour liminaires, reset avant contenu."""
         book = _make_book(tmp_path)
@@ -642,14 +686,15 @@ class TestFrontMatter:
         generate_typst(book, typ_path, config=config)
         content = typ_path.read_text(encoding="utf-8")
         assert "#set page(numbering: none)" in content
-        assert '#set page(numbering: "1")' in content
+        assert 'numbering: "1"' in content
         assert "#counter(page).update(1)" in content
         reset_pos = content.index("#counter(page).update(1)")
         chapter_pos = content.index("= Introduction")
         assert reset_pos < chapter_pos
 
     def test_generate_typst_no_front_matter_without_config(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """Sans config, pas de pages liminaires (retro-compatibilite)."""
         book = _make_book(tmp_path)
@@ -661,7 +706,8 @@ class TestFrontMatter:
         assert "#set page(numbering: none)" not in content
 
     def test_generate_typst_escapes_config_text(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """Le contenu utilisateur dans BookConfig est echappe."""
         book = _make_book(tmp_path)
@@ -680,7 +726,8 @@ class TestFrontMatter:
         assert "L'auteur \\@test" in content
 
     def test_render_pdf_with_config_produces_pdf(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """Integration : render_pdf avec config genere un .typ avec front matter."""
         output_dir = tmp_path / "output"
@@ -697,3 +744,240 @@ class TestFrontMatter:
         assert "#outline(indent: auto)" in content
         assert "Mon Livre Business" in content
 
+
+# --- Tests pages de garde et en-tetes/pieds de page (Story 2.5) ---
+
+
+def _make_multi_chapter_book(tmp_path: Path) -> BookNode:
+    """Cree un BookNode avec 2 chapitres pour tester les pages de garde."""
+    source = MINIMAL_DIR / "chapitres" / "01-introduction.md"
+    return BookNode(
+        title="Mon Livre Business",
+        chapters=(
+            ChapterNode(
+                title="Introduction",
+                children=(
+                    HeadingNode(
+                        level=1,
+                        text="Introduction",
+                        source_file=source,
+                        line_number=1,
+                    ),
+                    ParagraphNode(
+                        text="Contenu du premier chapitre.",
+                        source_file=source,
+                        line_number=3,
+                    ),
+                ),
+                source_file=source,
+                line_number=1,
+            ),
+            ChapterNode(
+                title="Methode",
+                children=(
+                    HeadingNode(
+                        level=1,
+                        text="Methode",
+                        source_file=source,
+                        line_number=10,
+                    ),
+                    ParagraphNode(
+                        text="Contenu du deuxieme chapitre.",
+                        source_file=source,
+                        line_number=12,
+                    ),
+                ),
+                source_file=source,
+                line_number=10,
+            ),
+        ),
+        source_file=MINIMAL_DIR / "book.yaml",
+        line_number=1,
+    )
+
+
+class TestChapterPagesAndHeaders:
+    """Tests des pages de garde de chapitre et en-tetes/pieds de page (Story 2.5)."""
+
+    def test_chapter_title_page_generated(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #1 : page de garde avec titre du chapitre."""
+        book = _make_multi_chapter_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        # Label reel (pas celui dans le query du header)
+        assert "] <chapter-start>" in content
+        assert "#pagebreak(weak: true)" in content
+
+    def test_chapter_title_page_styling(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #1 : style page de garde -- centree, grande typographie."""
+        book = _make_multi_chapter_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "#align(center + horizon)" in content
+        # Le titre du chapitre dans la page de garde (label reel, pas query)
+        ch_start_pos = content.index("] <chapter-start>")
+        before_label = content[:ch_start_pos]
+        assert 'size: 28pt, weight: "bold"' in before_label
+        assert "Introduction" in before_label
+
+    def test_chapter_title_page_each_chapter(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #1 : chaque chapitre a sa propre page de garde."""
+        book = _make_multi_chapter_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        # Labels reels ("] <chapter-start>") — pas les refs dans query()
+        assert content.count("] <chapter-start>") == 2
+
+    def test_running_header_contains_book_title(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #2 : en-tete contient le titre du livre."""
+        book = _make_multi_chapter_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "header: context {" in content
+        assert "Mon Livre Business" in content
+
+    def test_running_header_contains_chapter_title(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #2 : en-tete contient le titre du chapitre courant via query."""
+        book = _make_multi_chapter_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "selector(heading.where(level: 1)).before(here())" in content
+        assert "chapters.last().body" in content
+
+    def test_footer_page_number(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #3 : pied de page avec numero de page centre."""
+        book = _make_multi_chapter_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "footer: context {" in content
+        assert 'counter(page).display("1")' in content
+
+    def test_front_matter_no_header_footer(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #4 : pages liminaires sans en-tetes/pieds de page."""
+        book = _make_multi_chapter_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        none_pos = content.index("#set page(numbering: none)")
+        header_pos = content.index("header: context {")
+        assert none_pos < header_pos
+
+    def test_chapter_start_page_no_header(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #5 : page de garde sans en-tete (detection via label)."""
+        book = _make_multi_chapter_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "query(<chapter-start>)" in content
+        assert "is-chapter-start" in content
+
+    def test_multi_chapter_headers_footers(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """Integration : 2 chapitres avec pages de garde, headers et footers."""
+        book = _make_multi_chapter_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+
+        numbering_none_pos = content.index("#set page(numbering: none)")
+        outline_pos = content.index("#outline(indent: auto)")
+        header_setup_pos = content.index("header: context {")
+        counter_reset_pos = content.index("#counter(page).update(1)")
+        first_cs = content.index("] <chapter-start>")
+        second_cs = content.index("] <chapter-start>", first_cs + 1)
+        h1_intro = content.index("= Introduction")
+        h1_methode = content.index("= Methode")
+
+        assert numbering_none_pos < outline_pos
+        assert outline_pos < header_setup_pos
+        assert header_setup_pos < counter_reset_pos
+        assert counter_reset_pos < first_cs
+        assert first_cs < h1_intro
+        assert h1_intro < second_cs
+        assert second_cs < h1_methode
+
+    def test_no_chapter_pages_without_config(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #6 : sans config, pas de pages de garde ni headers (retro-compat)."""
+        book = _make_multi_chapter_book(tmp_path)
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "] <chapter-start>" not in content
+        assert "header: context {" not in content
+        assert "footer: context {" not in content
+
+    def test_chapter_title_escapes_special_chars(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """Caracteres speciaux dans les titres de chapitre sont echappes."""
+        source = MINIMAL_DIR / "chapitres" / "01-introduction.md"
+        book = BookNode(
+            title="Test",
+            chapters=(
+                ChapterNode(
+                    title="Chapitre #1 avec $pecial",
+                    children=(
+                        HeadingNode(
+                            level=1,
+                            text="Chapitre #1 avec $pecial",
+                            source_file=source,
+                            line_number=1,
+                        ),
+                    ),
+                    source_file=source,
+                    line_number=1,
+                ),
+            ),
+            source_file=source,
+            line_number=1,
+        )
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "Chapitre \\#1 avec \\$pecial" in content

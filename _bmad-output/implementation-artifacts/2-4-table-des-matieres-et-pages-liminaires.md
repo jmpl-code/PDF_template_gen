@@ -1,6 +1,6 @@
 # Story 2.4 : Table des matieres et pages liminaires
 
-Status: review
+Status: done
 
 ## Story
 
