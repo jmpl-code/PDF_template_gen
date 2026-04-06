@@ -1,6 +1,7 @@
 {
   "type": "BookNode",
   "title": "Mon Livre Business",
+  "line_number": 1,
   "chapters": [
     {
       "type": "ChapterNode",

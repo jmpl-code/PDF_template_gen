@@ -34,3 +34,5 @@ class BookNode:
 
     title: str
     chapters: tuple[ChapterNode, ...]
+    source_file: Path
+    line_number: int

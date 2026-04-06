@@ -45,16 +45,16 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # Epic 1 : Fondation du projet et pipeline minimal
-  epic-1: in-progress
+  epic-1: done
   1-1-initialisation-du-projet-avec-le-starter-template: done
   1-2-structure-des-modules-et-erreurs-de-base: done
-  1-3-ci-github-actions: review
+  1-3-ci-github-actions: done
   epic-1-retrospective: optional
 
   # Epic 2 : Du Markdown au PDF — Premier rendu
   epic-2: in-progress
-  2-1-parsing-et-validation-de-book-yaml: review
-  2-2-parser-markdown-vers-ast: review
+  2-1-parsing-et-validation-de-book-yaml: done
+  2-2-parser-markdown-vers-ast: done
   2-3-renderer-pdf-template-typst-de-base: backlog
   2-4-table-des-matieres-et-pages-liminaires: backlog
   2-5-pages-de-garde-de-chapitre-et-en-tetes-pieds-de-page: backlog

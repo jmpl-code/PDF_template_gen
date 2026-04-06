@@ -1,6 +1,6 @@
 # Story 1.3 : CI GitHub Actions
 
-Status: review
+Status: done
 
 ## Story
 

@@ -29,6 +29,7 @@ def ast_to_dict(node: Any) -> dict[str, Any]:
         return {
             "type": "BookNode",
             "title": node.title,
+            "line_number": node.line_number,
             "chapters": [ast_to_dict(c) for c in node.chapters],
         }
     if isinstance(node, ChapterNode):
@@ -87,6 +88,9 @@ class TestParserValid:
 
     def test_parser_nodes_carry_source_file_and_line_number(self) -> None:
         book = _load_minimal_book()
+        # BookNode porte source_file et line_number (review finding C1)
+        assert book.source_file.exists()
+        assert book.line_number == 1
         chapter = book.chapters[0]
         assert chapter.source_file.exists()
         assert chapter.line_number == 1

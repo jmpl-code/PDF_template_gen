@@ -1,6 +1,6 @@
 # Story 2.2 : Parser Markdown vers AST
 
-Status: review
+Status: done
 
 ## Story
 

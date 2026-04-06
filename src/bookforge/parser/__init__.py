@@ -21,6 +21,7 @@ def parse_book(config: BookConfig, book_dir: Path) -> BookNode:
     Returns:
         BookNode racine de l'AST.
     """
+    book_yaml_path = (book_dir / "book.yaml").resolve()
     chapters: list[ChapterNode] = []
 
     for chap in config.chapitres:
@@ -30,6 +31,7 @@ def parse_book(config: BookConfig, book_dir: Path) -> BookNode:
         tokens = parse_markdown_file(chap_path)
         children = tokens_to_ast(tokens, chap_path)
 
+        # line_number=1 : le chapitre est un fichier entier, pas une position dans un fichier
         chapter = ChapterNode(
             title=chap.titre,
             children=tuple(children),
@@ -39,7 +41,12 @@ def parse_book(config: BookConfig, book_dir: Path) -> BookNode:
         chapters.append(chapter)
 
     logger.debug("Book AST built: %s (%d chapters)", config.titre, len(chapters))
-    return BookNode(title=config.titre, chapters=tuple(chapters))
+    return BookNode(
+        title=config.titre,
+        chapters=tuple(chapters),
+        source_file=book_yaml_path,
+        line_number=1,
+    )
 
 
 __all__ = ["parse_book", "parse_markdown_file", "tokens_to_ast"]

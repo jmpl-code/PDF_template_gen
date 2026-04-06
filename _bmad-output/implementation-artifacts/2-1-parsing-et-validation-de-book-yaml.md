@@ -1,6 +1,6 @@
 # Story 2.1 : Parsing et validation de book.yaml
 
-Status: review
+Status: done
 
 ## Story
 
