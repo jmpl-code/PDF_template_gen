@@ -17,6 +17,10 @@ classification:
     - YAGNI strict — pas d'abstraction tant qu'un seul utilisateur
     - QA deux couches — checks objectifs (programmatiques) + critique subjective (LLM-judge)
     - Apprentissages des prototypes intégrés comme contraintes de design (Typst, Matplotlib 300 DPI, plan.yaml)
+lastEdited: '2026-04-06'
+editHistory:
+  - date: '2026-04-06'
+    changes: 'Validation + Edit: mesurabilite FR6/FR32/FR39, leakage FR6/FR16/FR27, NFR13 precision, Parcours 5 multilingue, Interface CLI FR49-51'
 ---
 
 # Product Requirements Document — BookForge
@@ -111,6 +115,12 @@ L'auteur repère des problèmes (diagramme trop large, titre collé, sous-titre 
 
 Tableau 8 colonnes, diagramme pleine page, chapitre de 3 pages. Le pipeline gère gracieusement : fallback image pour tableaux larges, protection contre coupure pour diagrammes, adaptation pour petits chapitres. Jamais de crash silencieux — warnings explicites.
 
+### Parcours 5 — Publication multilingue [Vision]
+
+Le livre business français se vend bien. L'auteur veut publier une édition anglaise sur le marché US. Dans `book.yaml`, il ajoute `targets: ["en"]`. `python bookforge.py book.yaml --lang en` traduit le Markdown via LLM, adapte les conventions typographiques (guillemets droits, pas d'espace insécable avant ponctuation), régénère les diagrammes avec labels traduits, ajuste titre et sous-titre de couverture, et produit le jeu complet PDF + EPUB + couverture en anglais.
+
+**Moment critique :** Si la traduction casse la mise en page (titre trop long, tableau élargi) ou produit un résultat linguistiquement amateur = échec.
+
 ### Capacités révélées par les parcours
 
 | Parcours | Capacités requises |
@@ -119,6 +129,7 @@ Tableau 8 colonnes, diagramme pleine page, chapitre de 3 pages. Le pipeline gèr
 | Itération | Preview rapide, tokens éditables, LLM-judge, boucle feedback |
 | Réutilisation | Classe réutilisable, tokens persistants, `book.yaml` seul point de personnalisation |
 | Edge cases | Gestion gracieuse, logging/warnings |
+| Multilingue | Traduction LLM, adaptation typo par langue, couverture/diagrammes localisés |
 
 ## Innovation & Patterns Novateurs
 
@@ -302,7 +313,7 @@ Validation technique progressive. Chaque gate est une comparaison mesurable. Res
 
 ### Rendu intérieur
 
-- **FR6 :** Le système peut transformer du Markdown en PDF via Typst avec typographie professionnelle
+- **FR6 :** Le système peut transformer du Markdown en PDF avec typographie conforme aux standards éditoriaux (espaces insécables, ligatures, césure automatique, interligne 120-140% du corps)
 - **FR7 :** Le système peut générer une table des matières depuis les headings Markdown
 - **FR8 :** Le système peut générer des pages de garde de chapitre
 - **FR9 :** Le système peut intégrer images et diagrammes sans coupure de page, redimensionnés et centrés automatiquement
@@ -315,7 +326,7 @@ Validation technique progressive. Chaque gate est une comparaison mesurable. Res
 ### Export multi-format
 
 - **FR15 :** Le système peut exporter en PDF valide conforme KDP print-on-demand
-- **FR16 :** Le système peut exporter en EPUB valide (epubcheck) avec métadonnées complètes, conforme Kindle [MVP0.5]
+- **FR16 :** Le système peut exporter en EPUB conforme aux spécifications EPUB 3.x, avec métadonnées complètes, compatible Kindle [MVP0.5]
 - **FR17 :** Le système peut rendre tous les éléments lisibles dans l'EPUB [MVP0.5]
 - **FR18 :** Le système peut produire PDF + EPUB en une seule commande [MVP0.5]
 - **FR19 :** Le système peut exporter les métadonnées KDP (description, mots-clés, catégories) prêtes à copier-coller [MVP0]
@@ -332,7 +343,7 @@ Validation technique progressive. Chaque gate est une comparaison mesurable. Res
 
 - **FR25 :** L'auteur peut personnaliser le rendu via design tokens YAML [MVP1]
 - **FR26 :** L'auteur peut choisir une classe de document pré-chargeant un jeu de tokens [MVP1]
-- **FR27 :** L'auteur peut surcharger ponctuellement le rendu Typst (escape hatch) [MVP1]
+- **FR27 :** L'auteur peut surcharger ponctuellement le rendu via des instructions natives du moteur de rendu (escape hatch) [MVP1]
 
 ### LLM-judge & qualité
 
@@ -343,7 +354,7 @@ Validation technique progressive. Chaque gate est une comparaison mesurable. Res
 ### QA & validation
 
 - **FR31 :** Le système peut vérifier que les images sont >= 300 DPI
-- **FR32 :** Le système peut détecter erreurs de mise en page et émettre des warnings [MVP2]
+- **FR32 :** Le système peut détecter les erreurs de mise en page (orphelines/veuves, images débordant des marges, tableaux tronqués, titres isolés en bas de page) et émettre des warnings [MVP2]
 - **FR33 :** Le système peut reproduire un rendu identique à partir des mêmes entrées [MVP0]
 - **FR34 :** Le système peut embarquer les polices dans PDF et EPUB [MVP0]
 
@@ -356,7 +367,7 @@ Validation technique progressive. Chaque gate est une comparaison mesurable. Res
 
 ### Logging & feedback
 
-- **FR39 :** Le système peut logger warnings et erreurs lisiblement (assets manquants, DPI insuffisant)
+- **FR39 :** Le système peut logger warnings et erreurs dans un format structuré (timestamp, sévérité warn/error, composant source, message descriptif)
 - **FR40 :** Le système peut reporter le coût LLM par livre [MVP2]
 
 ### Pages finales
@@ -374,6 +385,12 @@ Validation technique progressive. Chaque gate est une comparaison mesurable. Res
 - **FR45 :** Le système peut adapter les conventions typographiques à la langue cible [Vision]
 - **FR46 :** Le système peut générer couverture et 4e de couv dans la langue cible [Vision]
 - **FR47 :** Le système peut régénérer les diagrammes avec labels traduits [Vision]
+
+### Interface CLI
+
+- **FR49 :** L'auteur peut lancer le pipeline via une commande unique acceptant le chemin vers `book.yaml` et des options (`--lang`, `--judge`, `--preview`) [MVP0]
+- **FR50 :** Le système peut retourner des codes de sortie distincts (0 = succès, 1 = erreur d'entrée, 2 = erreur de rendu, 3 = erreur LLM) [MVP0]
+- **FR51 :** Le système peut produire un output machine-readable (JSON) avec le statut, les chemins de sortie et les warnings pour usage scripté [MVP1]
 
 ### Identité de collection
 
@@ -404,7 +421,7 @@ Validation technique progressive. Chaque gate est une comparaison mesurable. Res
 
 - **NFR11 :** Modules indépendants (parser, renderer PDF, renderer EPUB, cover, LLM-judge) testables isolément
 - **NFR12 :** Ajout de renderer/format sans modifier le code existant
-- **NFR13 :** Dépendances externes limitées et versionnées
+- **NFR13 :** Dépendances externes < 5 runtime (hors dev/test) et versionnées
 
 ### Portabilité
 
