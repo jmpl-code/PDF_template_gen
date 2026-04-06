@@ -1,0 +1,7 @@
+titre: "Mon Livre"
+auteur: "JM"
+genre: "business"
+
+chapitres:
+  - titre: "Chapitre Fantome"
+    fichier: "chapitres/inexistant.md"

@@ -1,0 +1,8 @@
+titre: "Mon Livre Business"
+sous_titre: "Un guide pratique"
+auteur: "JM"
+genre: "business"
+
+chapitres:
+  - titre: "Introduction"
+    fichier: "chapitres/01-introduction.md"

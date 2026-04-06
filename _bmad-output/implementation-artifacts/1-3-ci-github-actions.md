@@ -25,7 +25,7 @@ so that la qualite du code est verifiee automatiquement.
 - [x] Task 2 : Valider le workflow localement (AC: #1, #3)
   - [x] 2.1 Verifier que `uv run ruff check .` passe sans erreur
   - [x] 2.2 Verifier que `uv run mypy src/bookforge/` passe sans erreur
-  - [x] 2.3 Verifier que `uv run pytest` passe (31 tests existants)
+  - [x] 2.3 Verifier que `uv run pytest` passe (31 tests passants)
 - [x] Task 3 : Tester le workflow sur les 3 OS (AC: #2)
   - [x] 3.1 Valider la syntaxe YAML du workflow (pas d'erreurs de parsing)
   - [x] 3.2 Verifier la compatibilite cross-platform des commandes (pas de commandes bash-only)
@@ -34,11 +34,11 @@ so that la qualite du code est verifiee automatiquement.
 
 ### Contexte technique
 
-- **Package manager** : `uv` (pas pip). Utiliser `astral-sh/setup-uv@v6` pour l'installer dans CI
+- **Package manager** : `uv` (pas pip). Utiliser `astral-sh/setup-uv@v7` pour l'installer dans CI
 - **Build backend** : Hatchling (pas uv_build)
 - **Python min** : `>=3.10` (defini dans pyproject.toml)
 - **.python-version** : 3.13 (version locale de dev)
-- **30 tests** actuellement en place et passants
+- **31 tests** actuellement en place et passants
 
 ### Workflows existants
 
@@ -66,76 +66,36 @@ uv run pytest                  # Tests (testpaths = ["tests"])
 - **mypy** : strict=true, python_version="3.10"
 - **pytest** : testpaths=["tests"]
 
-### Pattern du workflow
+### Architecture du workflow
 
-```yaml
-name: Python CI
+3 jobs dans `.github/workflows/python-ci.yml` :
+- **lint** (ubuntu, Python 3.10) : `uv run ruff check .`
+- **typecheck** (ubuntu, Python 3.10) : `uv run mypy src/bookforge/`
+- **test** (matrice 3 OS x 4 Python, `needs: [lint, typecheck]`) : `uv run pytest`
 
-on:
-  push:
-    branches: [main]
-    paths:
-      - "src/bookforge/**"
-      - "tests/**"
-      - "pyproject.toml"
-      - "uv.lock"
-      - ".github/workflows/python-ci.yml"
-  pull_request:
-    paths:
-      - "src/bookforge/**"
-      - "tests/**"
-      - "pyproject.toml"
-      - "uv.lock"
-      - ".github/workflows/python-ci.yml"
+Chaque job : `checkout@v5` → `setup-uv@v7` (avec `python-version`) → `uv sync` → commande
 
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - run: uv sync
-      - run: uv run ruff check .
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - run: uv sync
-      - run: uv run mypy src/bookforge/
-
-  test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - uses: astral-sh/setup-uv@v6
-      - run: uv sync
-      - run: uv run pytest
-```
+Bonnes pratiques appliquees :
+- `permissions: contents: read` (moindre privilege)
+- `concurrency` avec `cancel-in-progress: true` (evite les runs redondants)
+- `fail-fast: false` sur la matrice test (voir TOUS les echecs OS/Python)
+- `timeout-minutes: 10/15` (evite les jobs bloques)
+- `branches: [main]` sur push ET pull_request
+- `paths:` filtre sur fichiers Python uniquement (monorepo Node.js + Python)
 
 ### Decisions architecturales
 
-- **Lint et typecheck** sur ubuntu-latest uniquement (resultats identiques sur tous OS)
+- **Lint et typecheck** sur ubuntu-latest uniquement (resultats identiques sur tous OS), Python 3.10 (version min supportee, coherent avec mypy python_version)
 - **Tests** sur matrice complete OS x Python (detecter les incompatibilites cross-platform)
+- `setup-uv@v7` integre nativement `python-version` — `actions/setup-python` inutile
 - `uv sync` utilise `uv.lock` pour le determinisme (NFR5)
-- `setup-python` avant `setup-uv` pour les jobs tests (force la version Python de la matrice)
-- Pas de cache uv pour simplifier le premier setup (peut etre ajoute plus tard)
+- `test` depend de `lint` et `typecheck` : feedback rapide sur erreurs de qualite avant la matrice couteuse (12 jobs)
 
 ### Anti-patterns a eviter
 
-- Ne PAS utiliser `pip install` — toujours `uv sync`
-- Ne PAS utiliser `shell: bash` sur les commandes cross-platform — laisser le default
 - Ne PAS ajouter `continue-on-error: true` — le pipeline DOIT echouer
-- Ne PAS utiliser `uv run python -m pytest` — `uv run pytest` suffit
 - Ne PAS modifier les workflows Node.js existants
+- Ne PAS utiliser `actions/setup-python` — `setup-uv@v7` gere les versions Python
 
 ### Apprentissages des stories precedentes
 
@@ -178,6 +138,7 @@ Claude Opus 4.6 (1M context)
 - Syntaxe YAML validee via PyYAML
 - Toutes les commandes sont cross-platform (uv sync, uv run ruff/mypy/pytest)
 - Aucun `continue-on-error` — pipeline echoue sur tout check rate
+- Post-validation : ajout permissions, concurrency, fail-fast:false, timeout-minutes, python-version explicite pour lint/typecheck, filtre branches PR
 
 ### File List
 
@@ -186,3 +147,4 @@ Claude Opus 4.6 (1M context)
 ### Change Log
 
 - 2026-04-06 : Creation du workflow CI Python avec matrice OS x Python, jobs lint/typecheck/test
+- 2026-04-06 : Post-validation — ajout permissions, concurrency, fail-fast:false, timeout-minutes, python-version lint/typecheck, filtre branches PR

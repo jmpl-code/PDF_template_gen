@@ -10,6 +10,7 @@ on:
       - "uv.lock"
       - ".github/workflows/python-ci.yml"
   pull_request:
+    branches: [main]
     paths:
       - "src/bookforge/**"
       - "tests/**"
@@ -17,13 +18,23 @@ on:
       - "uv.lock"
       - ".github/workflows/python-ci.yml"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - name: Setup uv
         uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.10"
       - name: Install dependencies
         run: uv sync
       - name: Ruff check
@@ -31,21 +42,27 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - name: Setup uv
         uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.10"
       - name: Install dependencies
         run: uv sync
       - name: Mypy
         run: uv run mypy src/bookforge/
 
   test:
+    needs: [lint, typecheck]
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - name: Setup uv with Python ${{ matrix.python-version }}
