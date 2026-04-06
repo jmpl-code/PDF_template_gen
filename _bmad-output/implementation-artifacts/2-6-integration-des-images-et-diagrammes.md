@@ -1,6 +1,6 @@
 # Story 2.6 : Integration des images et diagrammes
 
-Status: review
+Status: done
 
 ## Story
 
