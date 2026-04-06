@@ -47,7 +47,12 @@ Ceci est le contenu du premier chapitre.
 
 Un paragraphe avec du texte explicatif.
 
-#align(center)[#image("PLACEHOLDER_IMAGE_PATH", width: 80%)]
+#block(breakable: false)[
+  #figure(
+    image("PLACEHOLDER_IMAGE_PATH", width: 80%),
+    caption: [Diagramme exemple],
+  )
+]
 
 #table(
   columns: 2,

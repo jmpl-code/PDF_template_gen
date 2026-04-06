@@ -243,8 +243,8 @@ class TestGenerateTypst:
         # ParagraphNode
         assert "Ceci est le contenu du premier chapitre." in content
         assert "Un paragraphe avec du texte explicatif." in content
-        # ImageNode
-        assert '#image("' in content
+        # ImageNode (Story 2.6: figure + block)
+        assert 'image("' in content
         assert "diagram.png" in content
         # TableNode
         assert "#table(" in content
@@ -321,8 +321,8 @@ class TestGenerateTypst:
 
         golden = golden_path.read_text(encoding="utf-8")
         # Les chemins images varient — on compare tout sauf ces lignes
-        actual_lines = [line for line in actual.splitlines() if '#image("' not in line]
-        golden_lines = [line for line in golden.splitlines() if '#image("' not in line]
+        actual_lines = [line for line in actual.splitlines() if 'image("' not in line]
+        golden_lines = [line for line in golden.splitlines() if 'image("' not in line]
         assert actual_lines == golden_lines
 
     def test_generate_typst_chapter_pagebreak(
@@ -981,3 +981,145 @@ class TestChapterPagesAndHeaders:
         generate_typst(book, typ_path, config=config)
         content = typ_path.read_text(encoding="utf-8")
         assert "Chapitre \\#1 avec \\$pecial" in content
+
+
+# --- Tests integration images et diagrammes (Story 2.6) ---
+
+
+class TestImageIntegration:
+    """Tests de l'integration des images avec figure et protection anti-coupure (Story 2.6)."""
+
+    def test_image_centered_in_figure(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #1 : l'image est rendue via #figure (centre par defaut)."""
+        book = _make_book(tmp_path)
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "#figure(" in content
+        assert 'image("' in content
+
+    def test_image_breakable_false(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #3 : protection anti-coupure via #block(breakable: false)."""
+        book = _make_book(tmp_path)
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "#block(breakable: false)[" in content
+
+    def test_image_with_alt_has_caption(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #5 : texte alternatif affiche comme legende."""
+        book = _make_book(tmp_path)
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "caption: [Diagramme exemple]," in content
+
+    def test_image_without_alt_no_caption(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #6 : pas de legende si alt text vide."""
+        source = MINIMAL_DIR / "chapitres" / "01-introduction.md"
+        images_dir = tmp_path / "images"
+        images_dir.mkdir(exist_ok=True)
+        src_img = MINIMAL_DIR / "images" / "diagram.png"
+        dest_img = images_dir / "diagram.png"
+        shutil.copy2(src_img, dest_img)
+
+        book = BookNode(
+            title="Test",
+            chapters=(
+                ChapterNode(
+                    title="Ch",
+                    children=(
+                        ImageNode(
+                            src=dest_img,
+                            alt="",
+                            source_file=source,
+                            line_number=1,
+                        ),
+                    ),
+                    source_file=source,
+                    line_number=1,
+                ),
+            ),
+            source_file=source,
+            line_number=1,
+        )
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "#figure(" in content
+        assert "caption:" not in content
+
+    def test_image_width_constraint(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #2 : largeur contrainte a 80% pour tenir dans les marges."""
+        book = _make_book(tmp_path)
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "width: 80%" in content
+
+    def test_image_path_forward_slashes(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """Cross-platform : chemins avec forward slashes dans le Typst genere."""
+        book = _make_book(tmp_path)
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path)
+        content = typ_path.read_text(encoding="utf-8")
+        # Extraire la ligne image et verifier pas de backslash
+        for line in content.splitlines():
+            if 'image("' in line:
+                path_part = line.split('image("')[1].split('"')[0]
+                assert "\\" not in path_part
+
+    def test_image_alt_text_escaped(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """Le texte alt est echappe pour eviter les injections Typst."""
+        source = MINIMAL_DIR / "chapitres" / "01-introduction.md"
+        images_dir = tmp_path / "images"
+        images_dir.mkdir(exist_ok=True)
+        src_img = MINIMAL_DIR / "images" / "diagram.png"
+        dest_img = images_dir / "diagram.png"
+        shutil.copy2(src_img, dest_img)
+
+        book = BookNode(
+            title="Test",
+            chapters=(
+                ChapterNode(
+                    title="Ch",
+                    children=(
+                        ImageNode(
+                            src=dest_img,
+                            alt="Figure #1 avec $pecial",
+                            source_file=source,
+                            line_number=1,
+                        ),
+                    ),
+                    source_file=source,
+                    line_number=1,
+                ),
+            ),
+            source_file=source,
+            line_number=1,
+        )
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path)
+        content = typ_path.read_text(encoding="utf-8")
+        assert r"caption: [Figure \#1 avec \$pecial]," in content

@@ -1,4 +1,4 @@
-"""Renderer PDF via typst compile (Stories 2.3, 2.4, 2.5)."""
+"""Renderer PDF via typst compile (Stories 2.3, 2.4, 2.5, 2.6)."""
 
 from __future__ import annotations
 
@@ -108,7 +108,7 @@ def _render_node(node: ASTNode, typ_dir: Path) -> str:
 
 
 def _render_image(image: ImageNode, typ_dir: Path) -> str:
-    """Genere le code Typst pour une image avec chemin relatif au .typ."""
+    """Genere le code Typst pour une image avec protection anti-coupure."""
     try:
         rel_path = image.src.resolve().relative_to(typ_dir.resolve())
     except ValueError:
@@ -118,7 +118,16 @@ def _render_image(image: ImageNode, typ_dir: Path) -> str:
         )
     # Forward slashes pour Typst cross-platform
     src_str = str(rel_path).replace("\\", "/")
-    return f'#align(center)[#image("{src_str}", width: 80%)]\n\n'
+    caption_line = ""
+    if image.alt:
+        caption_line = f"\n    caption: [{escape_typst(image.alt)}],"
+    return (
+        "#block(breakable: false)[\n"
+        "  #figure(\n"
+        f'    image("{src_str}", width: 80%),{caption_line}\n'
+        "  )\n"
+        "]\n\n"
+    )
 
 
 def _render_table(table: TableNode) -> str:

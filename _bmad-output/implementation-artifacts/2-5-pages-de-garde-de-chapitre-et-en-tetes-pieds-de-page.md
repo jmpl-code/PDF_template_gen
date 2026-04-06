@@ -1,6 +1,6 @@
 # Story 2.5 : Pages de garde de chapitre et en-tetes/pieds de page
 
-Status: review
+Status: done
 
 ## Story
 
