@@ -1,0 +1,58 @@
+{
+  "type": "BookNode",
+  "title": "Mon Livre Business",
+  "chapters": [
+    {
+      "type": "ChapterNode",
+      "title": "Introduction",
+      "line_number": 1,
+      "children": [
+        {
+          "type": "HeadingNode",
+          "level": 1,
+          "text": "Introduction",
+          "line_number": 1
+        },
+        {
+          "type": "ParagraphNode",
+          "text": "Ceci est le contenu du premier chapitre.",
+          "line_number": 3
+        },
+        {
+          "type": "HeadingNode",
+          "level": 2,
+          "text": "Section 1",
+          "line_number": 5
+        },
+        {
+          "type": "ParagraphNode",
+          "text": "Un paragraphe avec du texte explicatif.",
+          "line_number": 7
+        },
+        {
+          "type": "ImageNode",
+          "alt": "Diagramme exemple",
+          "line_number": 9
+        },
+        {
+          "type": "TableNode",
+          "headers": [
+            "Colonne A",
+            "Colonne B"
+          ],
+          "rows": [
+            [
+              "valeur 1",
+              "valeur 2"
+            ],
+            [
+              "valeur 3",
+              "valeur 4"
+            ]
+          ],
+          "line_number": 11
+        }
+      ]
+    }
+  ]
+}

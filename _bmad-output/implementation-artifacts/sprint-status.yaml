@@ -54,7 +54,7 @@ development_status:
   # Epic 2 : Du Markdown au PDF — Premier rendu
   epic-2: in-progress
   2-1-parsing-et-validation-de-book-yaml: review
-  2-2-parser-markdown-vers-ast: backlog
+  2-2-parser-markdown-vers-ast: review
   2-3-renderer-pdf-template-typst-de-base: backlog
   2-4-table-des-matieres-et-pages-liminaires: backlog
   2-5-pages-de-garde-de-chapitre-et-en-tetes-pieds-de-page: backlog
