@@ -1,2 +1,25 @@
-# Design tokens par defaut pour la classe business-manual.
-# Sera implemente en Story 4.1.
+# Design tokens par defaut — classe business-manual (Story 4.1)
+# Format KDP 6x9 pouces, typographie professionnelle Bringhurst
+
+# Geometrie page (KDP standard trim 6x9)
+page_width: "6in"
+page_height: "9in"
+margin_inner: "2cm"
+margin_outer: "1.5cm"
+margin_top: "2.5cm"
+margin_bottom: "2cm"
+
+# Typographie corps (Bringhurst)
+font_family: "New Computer Modern"
+font_size: 11
+line_height: 1.35
+
+# Hierarchie titres (KOMA-Script)
+heading_1_size: 24
+heading_2_size: 18
+heading_3_size: 14
+heading_4_size: 12
+
+# Espacement (LaTeX memoir)
+par_indent: "1em"
+par_skip: "0pt"

@@ -1,10 +1,11 @@
-"""Renderer EPUB via Pandoc (Story 3.1)."""
+"""Renderer EPUB via Pandoc (Stories 3.1, 4.1)."""
 
 from __future__ import annotations
 
 import datetime
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -20,6 +21,9 @@ from bookforge.ast_nodes import (
 )
 from bookforge.config.schema import BookConfig
 from bookforge.external import run_external
+
+if TYPE_CHECKING:
+    from bookforge.tokens.resolver import ResolvedTokenSet
 
 matplotlib.use("Agg")
 
@@ -42,6 +46,31 @@ td, th { border: 1px solid #ccc; padding: 0.3em 0.5em; }
 """
 
 _MAX_TABLE_COLUMNS = 4
+
+
+def _build_css_from_tokens(tokens: ResolvedTokenSet) -> str:
+    """Genere le CSS Kindle a partir des design tokens resolus."""
+    font_size = tokens.font_size if isinstance(tokens.font_size, (int, float)) else 11
+    h1_ratio = round(tokens.heading_1_size / font_size, 2) if font_size else 1.8
+    h2_ratio = round(tokens.heading_2_size / font_size, 2) if font_size else 1.4
+    h3_ratio = round(tokens.heading_3_size / font_size, 2) if font_size else 1.2
+    h4_ratio = round(tokens.heading_4_size / font_size, 2) if font_size else 1.1
+    return f"""\
+/* epub.css — style Kindle dynamique (Story 4.1) */
+body {{
+  font-family: serif;
+  font-size: {font_size}pt;
+  line-height: {tokens.line_height};
+}}
+h1 {{ font-size: {h1_ratio}em; margin-top: 2em; margin-bottom: 0.8em; }}
+h2 {{ font-size: {h2_ratio}em; margin-top: 1.5em; margin-bottom: 0.6em; }}
+h3 {{ font-size: {h3_ratio}em; margin-top: 1.2em; margin-bottom: 0.5em; }}
+h4 {{ font-size: {h4_ratio}em; margin-top: 1em; margin-bottom: 0.4em; }}
+p {{ text-indent: {tokens.par_indent}; margin: 0.2em 0; }}
+img {{ max-width: 100%; height: auto; }}
+table {{ border-collapse: collapse; width: 100%; }}
+td, th {{ border: 1px solid #ccc; padding: 0.3em 0.5em; }}
+"""
 
 
 def _render_table_as_image(table: TableNode, output_path: Path) -> None:
@@ -148,6 +177,7 @@ def render_epub(
     book: BookNode,
     output_dir: Path,
     config: BookConfig | None = None,
+    tokens: ResolvedTokenSet | None = None,
 ) -> Path:
     """Render a BookNode AST to an EPUB file via Pandoc.
 
@@ -155,6 +185,7 @@ def render_epub(
         book: The book AST root node.
         output_dir: Directory where the EPUB and build artifacts are written.
         config: Optional book configuration for metadata injection.
+        tokens: Optional design tokens for dynamic CSS generation.
 
     Returns:
         Path to the generated .epub file.
@@ -168,9 +199,10 @@ def render_epub(
     md_path.write_text(md_content, encoding="utf-8")
     logger.debug("EPUB Markdown written: %s", md_path)
 
-    # 2. CSS
+    # 2. CSS (dynamique si tokens fournis, sinon statique)
+    css_content = _build_css_from_tokens(tokens) if tokens is not None else _KINDLE_CSS
     css_path = build_dir / "epub.css"
-    css_path.write_text(_KINDLE_CSS, encoding="utf-8")
+    css_path.write_text(css_content, encoding="utf-8")
 
     # 3. Metadata
     pandoc_args = [

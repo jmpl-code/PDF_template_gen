@@ -1,0 +1,4 @@
+# Tokens avec cles inconnues (test fixture Story 4.1)
+font_size: 12
+unknown_token: 42
+another_fake: "hello"

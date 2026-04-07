@@ -1,10 +1,11 @@
-"""Renderer PDF via typst compile (Stories 2.3, 2.4, 2.5, 2.6)."""
+"""Renderer PDF via typst compile (Stories 2.3, 2.4, 2.5, 2.6, 4.1)."""
 
 from __future__ import annotations
 
 import datetime
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from bookforge.ast_nodes import (
     ASTNode,
@@ -18,6 +19,9 @@ from bookforge.ast_nodes import (
 from bookforge.config.schema import BookConfig
 from bookforge.errors import RenderError
 from bookforge.external import run_external
+
+if TYPE_CHECKING:
+    from bookforge.tokens.resolver import ResolvedTokenSet
 
 logger = logging.getLogger("bookforge.renderers.pdf")
 
@@ -76,6 +80,53 @@ _BASE_TEMPLATE = """\
 #show heading.where(level: 3): set block(above: 1.4em, below: 0.8em)
 
 #show heading.where(level: 4): set text(size: 12pt, weight: "bold")
+#show heading.where(level: 4): set block(above: 1.2em, below: 0.6em)
+
+// --- BEGIN CONTENT ---
+"""
+
+
+def _build_template_from_tokens(tokens: ResolvedTokenSet) -> str:
+    """Genere le template Typst a partir des design tokens resolus."""
+    return f"""\
+// Template Typst dynamique — BookForge (Story 4.1)
+// Genere a partir des design tokens resolus
+
+// Configuration page
+#set page(
+  width: {tokens.page_width},
+  height: {tokens.page_height},
+  margin: (inside: {tokens.margin_inner}, outside: {tokens.margin_outer},
+           top: {tokens.margin_top}, bottom: {tokens.margin_bottom}),
+)
+
+// Typographie professionnelle
+#set text(
+  font: "{tokens.font_family}",
+  size: {tokens.font_size}pt,
+  lang: "fr",
+  region: "FR",
+  hyphenate: true,
+)
+
+// Paragraphes
+#set par(
+  justify: true,
+  leading: {tokens.line_height}em,
+  first-line-indent: {tokens.par_indent},
+)
+
+// Headings h1-h4
+#show heading.where(level: 1): set text(size: {tokens.heading_1_size}pt, weight: "bold")
+#show heading.where(level: 1): set block(above: 2em, below: 1.2em)
+
+#show heading.where(level: 2): set text(size: {tokens.heading_2_size}pt, weight: "bold")
+#show heading.where(level: 2): set block(above: 1.8em, below: 1em)
+
+#show heading.where(level: 3): set text(size: {tokens.heading_3_size}pt, weight: "bold")
+#show heading.where(level: 3): set block(above: 1.4em, below: 0.8em)
+
+#show heading.where(level: 4): set text(size: {tokens.heading_4_size}pt, weight: "bold")
 #show heading.where(level: 4): set block(above: 1.2em, below: 0.6em)
 
 // --- BEGIN CONTENT ---
@@ -271,10 +322,12 @@ def generate_typst(
     book: BookNode,
     output_path: Path,
     config: BookConfig | None = None,
+    tokens: ResolvedTokenSet | None = None,
 ) -> Path:
     """Genere un fichier .typ depuis l'AST BookNode."""
     typ_dir = output_path.resolve().parent
-    content_parts: list[str] = [_BASE_TEMPLATE, "\n"]
+    template = _build_template_from_tokens(tokens) if tokens is not None else _BASE_TEMPLATE
+    content_parts: list[str] = [template, "\n"]
     has_chapter_pages = config is not None
     if config is not None:
         content_parts.append(_render_front_matter(config))
@@ -306,12 +359,13 @@ def render_pdf(
     book: BookNode,
     output_dir: Path,
     config: BookConfig | None = None,
+    tokens: ResolvedTokenSet | None = None,
 ) -> Path:
     """Point d'entree : AST -> .typ -> PDF."""
     output_dir.mkdir(parents=True, exist_ok=True)
     typ_path = output_dir / "livre-interieur.typ"
     pdf_path = output_dir / "livre-interieur.pdf"
-    generate_typst(book, typ_path, config=config)
+    generate_typst(book, typ_path, config=config, tokens=tokens)
     compile_typst(typ_path, pdf_path)
     logger.debug("PDF generated: %s", pdf_path)
     return pdf_path
