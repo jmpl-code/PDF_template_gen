@@ -19,6 +19,9 @@ class BookConfig(BaseModel):
     genre: str
     isbn: str | None = None
     dedicace: str | None = None
+    description: str | None = None
+    mots_cles: list[str] | None = None
+    categories: list[str] | None = None
     chapitres: list[ChapterConfig]
 
     @field_validator("chapitres")

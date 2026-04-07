@@ -1,6 +1,6 @@
 # Story 2.7 : Couverture template statique
 
-Status: review
+Status: done
 
 ## Story
 

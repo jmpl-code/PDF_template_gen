@@ -1,0 +1,20 @@
+titre: "Mon Livre Business Complet"
+sous_titre: "Un guide pratique pour entrepreneurs"
+auteur: "Jean-Marc Dupont"
+genre: "business"
+isbn: "978-2-1234-5678-9"
+dedicace: "A tous les entrepreneurs"
+description: "Un guide complet sur le business moderne et les strategies d'entreprise"
+mots_cles:
+  - business
+  - entrepreneuriat
+  - strategie
+  - management
+  - productivite
+categories:
+  - "Business & Economie"
+  - "Management & Leadership"
+
+chapitres:
+  - titre: "Introduction"
+    fichier: "chapitres/01-introduction.md"
