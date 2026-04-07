@@ -1,6 +1,6 @@
 # Story 4.1 : Systeme de design tokens YAML et registre d'assertions
 
-Status: review
+Status: done
 
 ## Story
 
@@ -76,6 +76,16 @@ So that j'adapte l'apparence sans toucher au code ni aux templates.
     - `test_render_pdf_without_tokens_backward_compat` — sans tokens = template hardcode
     - `test_render_epub_with_tokens` — verifier que le CSS contient les valeurs des tokens
     - `test_render_epub_without_tokens_backward_compat` — sans tokens = CSS statique
+
+### Review Findings
+
+- [x] [Review][Patch] Injection Typst via string tokens non sanitises [src/bookforge/renderers/pdf.py] — fixed: regex validation _safe_dim/_safe_font
+- [x] [Review][Patch] Injection CSS via string tokens non sanitises [src/bookforge/renderers/epub.py] — fixed: regex validation _safe_css_dim
+- [x] [Review][Patch] Path traversal possible dans `class_name` de `resolve_tokens` [src/bookforge/tokens/resolver.py] — fixed: is_relative_to check
+- [x] [Review][Patch] YAML parse error (`yaml.YAMLError`) non gere dans `_load_yaml` [src/bookforge/tokens/resolver.py] — fixed: try/except yaml.YAMLError + OSError
+- [x] [Review][Patch] `_BASE_TEMPLATE` leading=1.3em differe du default registry=1.35 [src/bookforge/renderers/pdf.py] — fixed: aligned to 1.35em
+- [x] [Review][Defer] Defaults dupliques entre registry, ResolvedTokenSet et business_manual.yaml — deferred, design decision MVP1
+- [x] [Review][Defer] Pas de validation type/format sur les tokens string (margins, page dimensions) — deferred, feedback a la compilation Typst suffisant MVP1
 
 ## Dev Notes
 

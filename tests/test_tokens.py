@@ -188,7 +188,7 @@ class TestPdfWithTokens:
         content = typ_path.read_text(encoding="utf-8")
         # Template hardcode original
         assert "size: 11pt" in content
-        assert "leading: 1.3em" in content
+        assert "leading: 1.35em" in content
         assert "inside: 2cm" in content
         assert "Story 2.3" in content  # original template marker
 

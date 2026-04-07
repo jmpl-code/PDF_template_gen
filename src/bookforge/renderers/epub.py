@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -48,6 +49,17 @@ td, th { border: 1px solid #ccc; padding: 0.3em 0.5em; }
 _MAX_TABLE_COLUMNS = 4
 
 
+_SAFE_CSS_DIM_RE = re.compile(r"^[\d.]+(pt|mm|cm|in|em|rem|%)$")
+
+
+def _safe_css_dim(value: str, fallback: str) -> str:
+    """Valide une dimension CSS — retourne fallback si suspecte."""
+    if _SAFE_CSS_DIM_RE.match(value):
+        return value
+    logger.warning("Token CSS suspect ignore : '%s' — fallback '%s'", value, fallback)
+    return fallback
+
+
 def _build_css_from_tokens(tokens: ResolvedTokenSet) -> str:
     """Genere le CSS Kindle a partir des design tokens resolus."""
     font_size = tokens.font_size if isinstance(tokens.font_size, (int, float)) else 11
@@ -55,6 +67,7 @@ def _build_css_from_tokens(tokens: ResolvedTokenSet) -> str:
     h2_ratio = round(tokens.heading_2_size / font_size, 2) if font_size else 1.4
     h3_ratio = round(tokens.heading_3_size / font_size, 2) if font_size else 1.2
     h4_ratio = round(tokens.heading_4_size / font_size, 2) if font_size else 1.1
+    par_indent = _safe_css_dim(str(tokens.par_indent), "1em")
     return f"""\
 /* epub.css — style Kindle dynamique (Story 4.1) */
 body {{
@@ -66,7 +79,7 @@ h1 {{ font-size: {h1_ratio}em; margin-top: 2em; margin-bottom: 0.8em; }}
 h2 {{ font-size: {h2_ratio}em; margin-top: 1.5em; margin-bottom: 0.6em; }}
 h3 {{ font-size: {h3_ratio}em; margin-top: 1.2em; margin-bottom: 0.5em; }}
 h4 {{ font-size: {h4_ratio}em; margin-top: 1em; margin-bottom: 0.4em; }}
-p {{ text-indent: {tokens.par_indent}; margin: 0.2em 0; }}
+p {{ text-indent: {par_indent}; margin: 0.2em 0; }}
 img {{ max-width: 100%; height: auto; }}
 table {{ border-collapse: collapse; width: 100%; }}
 td, th {{ border: 1px solid #ccc; padding: 0.3em 0.5em; }}

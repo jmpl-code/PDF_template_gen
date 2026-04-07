@@ -82,7 +82,7 @@ development_status:
 
   # Epic 4 : Design tokens et personnalisation avancee
   epic-4: in-progress
-  4-1-systeme-de-design-tokens-yaml-et-registre-d-assertions: review
+  4-1-systeme-de-design-tokens-yaml-et-registre-d-assertions: done
   4-2-classe-de-document-et-jeu-de-tokens-predefini: backlog
   4-3-balises-semantiques-frameworks-callouts-chapter-summary: backlog
   4-4-numerotation-differenciee-et-escape-hatch-typst: backlog

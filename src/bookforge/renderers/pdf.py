@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -65,7 +66,7 @@ _BASE_TEMPLATE = """\
 // Paragraphes
 #set par(
   justify: true,
-  leading: 1.3em,
+  leading: 1.35em,
   first-line-indent: 1em,
 )
 
@@ -86,23 +87,51 @@ _BASE_TEMPLATE = """\
 """
 
 
+_SAFE_DIMENSION_RE = re.compile(r"^[\d.]+(pt|mm|cm|in|em)$")
+_SAFE_FONT_RE = re.compile(r'^[A-Za-z0-9 \-]+$')
+
+
+def _safe_dim(value: str, fallback: str) -> str:
+    """Valide une dimension token — retourne fallback si suspecte."""
+    if _SAFE_DIMENSION_RE.match(value):
+        return value
+    logger.warning("Token dimension suspect ignore : '%s' — fallback '%s'", value, fallback)
+    return fallback
+
+
+def _safe_font(value: str, fallback: str) -> str:
+    """Valide un nom de police — retourne fallback si suspect."""
+    if _SAFE_FONT_RE.match(value):
+        return value
+    logger.warning("Token font suspect ignore : '%s' — fallback '%s'", value, fallback)
+    return fallback
+
+
 def _build_template_from_tokens(tokens: ResolvedTokenSet) -> str:
     """Genere le template Typst a partir des design tokens resolus."""
+    pw = _safe_dim(str(tokens.page_width), "6in")
+    ph = _safe_dim(str(tokens.page_height), "9in")
+    mi = _safe_dim(str(tokens.margin_inner), "2cm")
+    mo = _safe_dim(str(tokens.margin_outer), "1.5cm")
+    mt = _safe_dim(str(tokens.margin_top), "2.5cm")
+    mb = _safe_dim(str(tokens.margin_bottom), "2cm")
+    ff = _safe_font(str(tokens.font_family), "New Computer Modern")
+    pi = _safe_dim(str(tokens.par_indent), "1em")
     return f"""\
 // Template Typst dynamique — BookForge (Story 4.1)
 // Genere a partir des design tokens resolus
 
 // Configuration page
 #set page(
-  width: {tokens.page_width},
-  height: {tokens.page_height},
-  margin: (inside: {tokens.margin_inner}, outside: {tokens.margin_outer},
-           top: {tokens.margin_top}, bottom: {tokens.margin_bottom}),
+  width: {pw},
+  height: {ph},
+  margin: (inside: {mi}, outside: {mo},
+           top: {mt}, bottom: {mb}),
 )
 
 // Typographie professionnelle
 #set text(
-  font: "{tokens.font_family}",
+  font: "{ff}",
   size: {tokens.font_size}pt,
   lang: "fr",
   region: "FR",
@@ -113,7 +142,7 @@ def _build_template_from_tokens(tokens: ResolvedTokenSet) -> str:
 #set par(
   justify: true,
   leading: {tokens.line_height}em,
-  first-line-indent: {tokens.par_indent},
+  first-line-indent: {pi},
 )
 
 // Headings h1-h4

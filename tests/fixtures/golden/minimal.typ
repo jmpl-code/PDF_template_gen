@@ -20,7 +20,7 @@
 // Paragraphes
 #set par(
   justify: true,
-  leading: 1.3em,
+  leading: 1.35em,
   first-line-indent: 1em,
 )
 

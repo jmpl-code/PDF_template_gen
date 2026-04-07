@@ -44,8 +44,15 @@ class ResolvedTokenSet(BaseModel):
 
 def _load_yaml(path: Path) -> dict[str, object]:
     """Charge un fichier YAML et retourne un dict."""
-    with path.open(encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    try:
+        with path.open(encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+    except yaml.YAMLError as exc:
+        logger.warning("tokens YAML illisible : %s — %s", path, exc)
+        return {}
+    except OSError as exc:
+        logger.warning("impossible de lire le fichier tokens : %s — %s", path, exc)
+        return {}
     if data is None:
         return {}
     if not isinstance(data, dict):
@@ -70,7 +77,10 @@ def resolve_tokens(
     """
     # 1. Charger les defaults de la classe
     class_file_name = class_name.replace("-", "_") + ".yaml"
-    defaults_path = _DEFAULTS_DIR / class_file_name
+    defaults_path = (_DEFAULTS_DIR / class_file_name).resolve()
+    if not defaults_path.is_relative_to(_DEFAULTS_DIR.resolve()):
+        logger.warning("Nom de classe invalide (path traversal) : '%s'", class_name)
+        defaults_path = _DEFAULTS_DIR / "business_manual.yaml"
     if defaults_path.exists():
         merged = _load_yaml(defaults_path)
     else:
