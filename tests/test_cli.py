@@ -82,8 +82,8 @@ class TestCliProgress:
             mock_pipeline.side_effect = call_with_progress
             result = runner.invoke(app, [str(book_yaml)])
 
-        assert "[Phase 1/3] parsing... 0%" in result.stderr
-        assert "[Phase 1/3] parsing... 100%" in result.stderr
+        assert "[Phase 1/3] parsing... 0%" in result.output
+        assert "[Phase 1/3] parsing... 100%" in result.output
 
 
 class TestCliOptions:

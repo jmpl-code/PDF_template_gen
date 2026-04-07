@@ -6,14 +6,11 @@ import logging
 from collections.abc import Callable
 from pathlib import Path
 
-from bookforge.ast_nodes.base import ASTNode
-from bookforge.ast_nodes.structure import BookNode, ChapterNode
 from bookforge.config.schema import BookConfig
 from bookforge.config.validator import load_book_config
 from bookforge.errors import InputError
 from bookforge.export import organize_output
-from bookforge.parser.markdown import parse_markdown_file
-from bookforge.parser.transform import tokens_to_ast
+from bookforge.parser import parse_book
 from bookforge.renderers.cover import render_cover
 from bookforge.renderers.pdf import render_pdf
 
@@ -26,31 +23,6 @@ def _notify(callback: ProgressCallback | None, phase: str, percent: int) -> None
     """Invoke progress callback if provided."""
     if callback is not None:
         callback(phase, percent)
-
-
-def _build_book_ast(config: BookConfig, book_root: Path) -> BookNode:
-    """Parse all chapters and assemble the BookNode AST."""
-    chapter_nodes: list[ChapterNode] = []
-
-    for chap_config in config.chapitres:
-        chap_path = (book_root / chap_config.fichier).resolve()
-        tokens = parse_markdown_file(chap_path)
-        children: list[ASTNode] = tokens_to_ast(tokens, chap_path)
-        chapter_nodes.append(
-            ChapterNode(
-                title=chap_config.titre,
-                children=tuple(children),
-                source_file=chap_path,
-                line_number=0,
-            )
-        )
-
-    return BookNode(
-        title=config.titre,
-        chapters=tuple(chapter_nodes),
-        source_file=book_root / "book.yaml",
-        line_number=0,
-    )
 
 
 def run_pipeline(
@@ -80,7 +52,7 @@ def run_pipeline(
     _notify(progress_callback, "parsing", 0)
     logger.info("Phase 1/3: parsing %s", book_path)
     config = load_book_config(book_path)
-    book = _build_book_ast(config, book_root)
+    book = parse_book(config, book_root)
     logger.info("Parsed %d chapters", len(book.chapters))
     _notify(progress_callback, "parsing", 100)
 
