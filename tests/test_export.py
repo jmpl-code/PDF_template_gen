@@ -155,3 +155,24 @@ class TestOrganizeOutput:
         organize_output(_make_config(), interior, cover, output_dir)
         assert interior.exists()
         assert cover.exists()
+
+    def test_organize_output_without_epub_no_epub_file(self, tmp_path: Path) -> None:
+        """organize_output sans epub_path ne cree pas de livre.epub (retro-compatibilite)."""
+        interior, cover = self._create_fake_pdfs(tmp_path)
+        output_dir = tmp_path / "output"
+        organize_output(_make_config(), interior, cover, output_dir)
+        assert not (output_dir / "livre.epub").exists()
+
+    def test_organize_output_with_epub_copies_epub(self, tmp_path: Path) -> None:
+        """organize_output avec epub_path copie le fichier EPUB dans le dossier de sortie."""
+        interior, cover = self._create_fake_pdfs(tmp_path)
+        build_dir = tmp_path / "build"
+        epub = build_dir / "livre.epub"
+        epub.write_bytes(b"PK fake epub content")
+        output_dir = tmp_path / "output"
+        organize_output(_make_config(), interior, cover, output_dir, epub_path=epub)
+        assert (output_dir / "livre.epub").exists()
+        assert (output_dir / "livre.epub").read_bytes() == b"PK fake epub content"
+        assert (output_dir / "livre-interieur.pdf").exists()
+        assert (output_dir / "couverture.pdf").exists()
+        assert (output_dir / "metadata-kdp.json").exists()

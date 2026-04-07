@@ -6,12 +6,12 @@ import logging
 from collections.abc import Callable
 from pathlib import Path
 
-from bookforge.config.schema import BookConfig
 from bookforge.config.validator import load_book_config
-from bookforge.errors import InputError
+from bookforge.errors import InputError, RenderError
 from bookforge.export import organize_output
 from bookforge.parser import parse_book
 from bookforge.renderers.cover import render_cover
+from bookforge.renderers.epub import render_epub
 from bookforge.renderers.pdf import render_pdf
 
 logger = logging.getLogger("bookforge.pipeline")
@@ -59,16 +59,23 @@ def run_pipeline(
     # Phase 2 — Render
     # Build dir must be book_root so images resolve via relative_to in Typst renderer
     _notify(progress_callback, "rendering", 0)
-    logger.info("Phase 2/3: rendering PDF")
+    logger.info("Phase 2/3: rendering PDF + EPUB")
     interior_pdf = render_pdf(book, book_root, config=config)
     cover_pdf = render_cover(config, book_root)
-    logger.info("Rendered interior and cover PDFs")
+
+    epub_path: Path | None = None
+    try:
+        epub_path = render_epub(book, book_root, config=config)
+    except RenderError as exc:
+        logger.warning("EPUB rendering failed, continuing with PDF only: %s", exc)
+
+    logger.info("Rendered interior PDF, cover PDF%s", " and EPUB" if epub_path else "")
     _notify(progress_callback, "rendering", 100)
 
     # Phase 3 — Export
     _notify(progress_callback, "export", 0)
     logger.info("Phase 3/3: organizing output")
-    organize_output(config, interior_pdf, cover_pdf, output_dir)
+    organize_output(config, interior_pdf, cover_pdf, output_dir, epub_path=epub_path)
     logger.info("Output organized in %s", output_dir)
     _notify(progress_callback, "export", 100)
 

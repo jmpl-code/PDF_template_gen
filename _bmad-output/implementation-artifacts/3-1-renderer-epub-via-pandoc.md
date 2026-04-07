@@ -1,6 +1,6 @@
 # Story 3.1 : Renderer EPUB via Pandoc
 
-Status: review
+Status: done
 
 ## Story
 

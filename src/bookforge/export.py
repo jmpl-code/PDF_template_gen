@@ -39,6 +39,7 @@ def organize_output(
     interior_pdf: Path,
     cover_pdf: Path,
     output_dir: Path,
+    epub_path: Path | None = None,
 ) -> Path:
     """Organise le dossier de sortie final avec tous les livrables."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -46,6 +47,9 @@ def organize_output(
     logger.debug("Copied interior PDF to output: %s", output_dir / "livre-interieur.pdf")
     shutil.copy2(cover_pdf, output_dir / "couverture.pdf")
     logger.debug("Copied cover PDF to output: %s", output_dir / "couverture.pdf")
+    if epub_path is not None:
+        shutil.copy2(epub_path, output_dir / "livre.epub")
+        logger.debug("Copied EPUB to output: %s", output_dir / "livre.epub")
     export_metadata_kdp(config, output_dir)
     logger.debug("Output directory organized: %s", output_dir)
     return output_dir
