@@ -1,6 +1,6 @@
 # Story 2.8: Export metadonnees KDP et dossier de sortie
 
-Status: review
+Status: done
 
 ## Story
 
