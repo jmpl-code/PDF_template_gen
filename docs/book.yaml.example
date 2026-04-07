@@ -1,0 +1,41 @@
+# Exemple complet de book.yaml — BookForge
+#
+# Ce fichier definit la configuration d'un livre pour le pipeline BookForge.
+# Seuls les champs marques (obligatoire) sont requis.
+
+# --- Metadonnees du livre ---
+titre: "Mon Livre Business"           # (obligatoire) Titre du livre
+sous_titre: "Un guide pratique"        # (optionnel) Sous-titre
+auteur: "Jean Dupont"                  # (obligatoire) Auteur
+genre: "business"                      # (obligatoire) Genre du livre
+isbn: "978-2-1234-5678-9"             # (optionnel) ISBN-13
+dedicace: "A ma famille"               # (optionnel) Dedicace
+description: "Un guide complet..."     # (optionnel) Description pour les metadonnees KDP
+mots_cles:                             # (optionnel) Mots-cles KDP
+  - "business"
+  - "management"
+categories:                            # (optionnel) Categories KDP
+  - "Business & Economics"
+
+# --- Classe de document (Story 4.2) ---
+# Precharge un jeu de design tokens coherent pour le rendu PDF et EPUB.
+# Valeurs possibles : "business-manual" (defaut)
+# Si omis, la classe "business-manual" est utilisee automatiquement.
+class: "business-manual"
+
+# --- Tokens personnalises (Story 4.2) ---
+# Chemin vers un fichier tokens.yaml pour surcharger les tokens de classe.
+# Si omis, BookForge cherche automatiquement un fichier "tokens.yaml"
+# dans le meme repertoire que ce book.yaml.
+# tokens: "mes-tokens.yaml"
+
+# --- Chapitres ---
+chapitres:                             # (obligatoire) Liste des chapitres
+  - titre: "Introduction"
+    fichier: "chapitres/01-introduction.md"
+  - titre: "Chapitre 1 : Les fondamentaux"
+    fichier: "chapitres/02-fondamentaux.md"
+  - titre: "Chapitre 2 : Mise en pratique"
+    fichier: "chapitres/03-mise-en-pratique.md"
+  - titre: "Conclusion"
+    fichier: "chapitres/04-conclusion.md"

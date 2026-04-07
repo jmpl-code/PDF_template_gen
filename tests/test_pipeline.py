@@ -1,7 +1,8 @@
-"""Tests pipeline orchestrateur (Stories 2.9, 3.2)."""
+"""Tests pipeline orchestrateur (Stories 2.9, 3.2, 4.2)."""
 
 from __future__ import annotations
 
+import logging
 import shutil
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -269,3 +270,146 @@ class TestDualExport:
         assert ("rendering", 100) in phase_calls
         assert ("export", 0) in phase_calls
         assert ("export", 100) in phase_calls
+
+
+class TestPipelineTokenIntegration:
+    """Tests integration pipeline + design tokens (Story 4.2)."""
+
+    def _fake_compile(self, cmd: list[str], description: str) -> MagicMock:
+        """Mock compile qui cree un faux fichier de sortie."""
+        out_path = Path(cmd[-1])
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_bytes(b"%PDF-1.4 fake")
+        return MagicMock()
+
+    def test_pipeline_with_class_resolves_tokens(self, tmp_path: Path) -> None:
+        """Pipeline avec class: business-manual applique les tokens dans le .typ."""
+        book_dir = tmp_path / "book"
+        book_yaml = _copy_fixture_to("with_class", book_dir)
+        output_dir = tmp_path / "output"
+
+        with (
+            patch("bookforge.renderers.pdf.run_external") as mock_pdf_ext,
+            patch("bookforge.renderers.cover.run_external") as mock_cover_ext,
+        ):
+            mock_pdf_ext.side_effect = self._fake_compile
+            mock_cover_ext.side_effect = self._fake_compile
+
+            run_pipeline(book_path=book_yaml.resolve(), output_dir=output_dir)
+
+        # Le .typ est genere dans book_dir (build dir = book_root)
+        typ_file = book_dir / "livre-interieur.typ"
+        assert typ_file.exists()
+        typ_content = typ_file.read_text(encoding="utf-8")
+
+        # La fixture with_class a un tokens.yaml avec font_size: 12, line_height: 1.40
+        assert "size: 12pt" in typ_content
+        assert "leading: 1.4em" in typ_content
+
+    def test_pipeline_with_class_and_user_tokens_overrides(self, tmp_path: Path) -> None:
+        """Les tokens auteur surchargent les tokens de classe dans le .typ."""
+        book_dir = tmp_path / "book"
+        book_yaml = _copy_fixture_to("with_class", book_dir)
+        output_dir = tmp_path / "output"
+
+        with (
+            patch("bookforge.renderers.pdf.run_external") as mock_pdf_ext,
+            patch("bookforge.renderers.cover.run_external") as mock_cover_ext,
+        ):
+            mock_pdf_ext.side_effect = self._fake_compile
+            mock_cover_ext.side_effect = self._fake_compile
+
+            run_pipeline(book_path=book_yaml.resolve(), output_dir=output_dir)
+
+        typ_content = (book_dir / "livre-interieur.typ").read_text(encoding="utf-8")
+
+        # margin_inner surcharge = 2.5cm (au lieu du default 2cm)
+        assert "inside: 2.5cm" in typ_content
+
+    def test_pipeline_without_class_backward_compat(self, tmp_path: Path) -> None:
+        """Pipeline avec fixture minimal (sans class) utilise les tokens par defaut."""
+        book_dir = tmp_path / "book"
+        book_yaml = _copy_fixture_to("minimal", book_dir)
+        output_dir = tmp_path / "output"
+
+        with (
+            patch("bookforge.renderers.pdf.run_external") as mock_pdf_ext,
+            patch("bookforge.renderers.cover.run_external") as mock_cover_ext,
+        ):
+            mock_pdf_ext.side_effect = self._fake_compile
+            mock_cover_ext.side_effect = self._fake_compile
+
+            result = run_pipeline(book_path=book_yaml.resolve(), output_dir=output_dir)
+
+        assert result == output_dir
+        assert (output_dir / "livre-interieur.pdf").exists()
+
+        # Verifie que le .typ utilise les defaults business-manual
+        typ_content = (book_dir / "livre-interieur.typ").read_text(encoding="utf-8")
+        assert "size: 11pt" in typ_content
+        assert "leading: 1.35em" in typ_content
+
+    def test_pipeline_unknown_class_warns_and_falls_back(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Classe inconnue emet un warning et utilise les tokens registre."""
+        book_dir = tmp_path / "book"
+        book_yaml = _copy_fixture_to("minimal", book_dir)
+        book_yaml.write_text(
+            'titre: "T"\nauteur: "A"\ngenre: "g"\nclass: "unknown-class"\n'
+            'chapitres:\n  - titre: "Intro"\n    fichier: "chapitres/01-introduction.md"\n',
+            encoding="utf-8",
+        )
+        output_dir = tmp_path / "output"
+
+        with (
+            patch("bookforge.renderers.pdf.run_external") as mock_pdf_ext,
+            patch("bookforge.renderers.cover.run_external") as mock_cover_ext,
+            caplog.at_level(logging.WARNING, logger="bookforge.tokens.resolver"),
+        ):
+            mock_pdf_ext.side_effect = self._fake_compile
+            mock_cover_ext.side_effect = self._fake_compile
+
+            result = run_pipeline(book_path=book_yaml.resolve(), output_dir=output_dir)
+
+        assert result == output_dir
+        assert "introuvable" in caplog.text or "defaults" in caplog.text
+
+    def test_pipeline_explicit_tokens_path_in_config(self, tmp_path: Path) -> None:
+        """Le champ tokens dans book.yaml pointe vers un fichier specifique."""
+        book_dir = tmp_path / "book"
+        book_yaml = _copy_fixture_to("minimal", book_dir)
+        custom_tokens = book_dir / "my-tokens.yaml"
+        custom_tokens.write_text("font_size: 13\n", encoding="utf-8")
+        book_yaml.write_text(
+            'titre: "T"\nauteur: "A"\ngenre: "g"\ntokens: "my-tokens.yaml"\n'
+            'chapitres:\n  - titre: "Intro"\n    fichier: "chapitres/01-introduction.md"\n',
+            encoding="utf-8",
+        )
+        output_dir = tmp_path / "output"
+
+        with (
+            patch("bookforge.renderers.pdf.run_external") as mock_pdf_ext,
+            patch("bookforge.renderers.cover.run_external") as mock_cover_ext,
+        ):
+            mock_pdf_ext.side_effect = self._fake_compile
+            mock_cover_ext.side_effect = self._fake_compile
+
+            run_pipeline(book_path=book_yaml.resolve(), output_dir=output_dir)
+
+        typ_content = (book_dir / "livre-interieur.typ").read_text(encoding="utf-8")
+        assert "size: 13pt" in typ_content
+
+    def test_pipeline_missing_tokens_file_raises_input_error(self, tmp_path: Path) -> None:
+        """Fichier tokens reference mais introuvable leve InputError."""
+        book_dir = tmp_path / "book"
+        book_yaml = _copy_fixture_to("minimal", book_dir)
+        book_yaml.write_text(
+            'titre: "T"\nauteur: "A"\ngenre: "g"\ntokens: "nonexistent.yaml"\n'
+            'chapitres:\n  - titre: "Intro"\n    fichier: "chapitres/01-introduction.md"\n',
+            encoding="utf-8",
+        )
+        output_dir = tmp_path / "output"
+
+        with pytest.raises(InputError, match="tokens introuvable"):
+            run_pipeline(book_path=book_yaml.resolve(), output_dir=output_dir)

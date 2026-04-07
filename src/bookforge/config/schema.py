@@ -1,6 +1,6 @@
-"""Modeles Pydantic v2 pour book.yaml (Story 2.1)."""
+"""Modeles Pydantic v2 pour book.yaml (Stories 2.1, 4.2)."""
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ChapterConfig(BaseModel):
@@ -13,6 +13,8 @@ class ChapterConfig(BaseModel):
 class BookConfig(BaseModel):
     """Configuration complete d'un livre definie par book.yaml."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     titre: str
     sous_titre: str | None = None
     auteur: str
@@ -23,6 +25,12 @@ class BookConfig(BaseModel):
     mots_cles: list[str] | None = None
     categories: list[str] | None = None
     chapitres: list[ChapterConfig]
+    document_class: str = Field(
+        default="business-manual",
+        alias="class",
+        pattern=r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+    )
+    tokens: str | None = None
 
     @field_validator("chapitres")
     @classmethod

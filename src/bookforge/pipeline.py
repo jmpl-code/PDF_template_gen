@@ -13,6 +13,7 @@ from bookforge.parser import parse_book
 from bookforge.renderers.cover import render_cover
 from bookforge.renderers.epub import render_epub
 from bookforge.renderers.pdf import render_pdf
+from bookforge.tokens import resolve_tokens
 
 logger = logging.getLogger("bookforge.pipeline")
 
@@ -56,16 +57,30 @@ def run_pipeline(
     logger.info("Parsed %d chapters", len(book.chapters))
     _notify(progress_callback, "parsing", 100)
 
+    # Phase 1b — Resolve design tokens
+    user_tokens_path: Path | None = None
+    if config.tokens:
+        user_tokens_path = book_root / config.tokens
+        if not user_tokens_path.exists():
+            raise InputError(f"Fichier tokens introuvable : {user_tokens_path}")
+    else:
+        auto_path = book_root / "tokens.yaml"
+        if auto_path.exists():
+            user_tokens_path = auto_path
+
+    tokens = resolve_tokens(user_yaml=user_tokens_path, class_name=config.document_class)
+    logger.debug("Tokens resolved for class '%s'", config.document_class)
+
     # Phase 2 — Render
     # Build dir must be book_root so images resolve via relative_to in Typst renderer
     _notify(progress_callback, "rendering", 0)
     logger.info("Phase 2/3: rendering PDF + EPUB")
-    interior_pdf = render_pdf(book, book_root, config=config)
+    interior_pdf = render_pdf(book, book_root, config=config, tokens=tokens)
     cover_pdf = render_cover(config, book_root)
 
     epub_path: Path | None = None
     try:
-        epub_path = render_epub(book, book_root, config=config)
+        epub_path = render_epub(book, book_root, config=config, tokens=tokens)
     except RenderError as exc:
         logger.warning("EPUB rendering failed, continuing with PDF only: %s", exc)
 

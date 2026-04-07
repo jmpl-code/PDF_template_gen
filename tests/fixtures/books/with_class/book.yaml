@@ -1,0 +1,8 @@
+titre: "Mon Livre Avec Classe"
+auteur: "JM"
+genre: "business"
+class: "business-manual"
+
+chapitres:
+  - titre: "Introduction"
+    fichier: "chapitres/01-introduction.md"

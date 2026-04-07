@@ -49,6 +49,7 @@ project: PDF_template_gen
 # Story 3-1 created: 2026-04-07
 # Story 3-2 created: 2026-04-07
 # Story 4-1 created: 2026-04-07
+# Story 4-2 created: 2026-04-07
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts
@@ -83,7 +84,7 @@ development_status:
   # Epic 4 : Design tokens et personnalisation avancee
   epic-4: in-progress
   4-1-systeme-de-design-tokens-yaml-et-registre-d-assertions: done
-  4-2-classe-de-document-et-jeu-de-tokens-predefini: backlog
+  4-2-classe-de-document-et-jeu-de-tokens-predefini: review
   4-3-balises-semantiques-frameworks-callouts-chapter-summary: backlog
   4-4-numerotation-differenciee-et-escape-hatch-typst: backlog
   epic-4-retrospective: optional

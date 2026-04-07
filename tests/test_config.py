@@ -1,8 +1,9 @@
-"""Tests pour le parsing et la validation de book.yaml (Story 2.1)."""
+"""Tests pour le parsing et la validation de book.yaml (Stories 2.1, 4.2)."""
 
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from bookforge.config import BookConfig, ChapterConfig, load_book_config
 from bookforge.errors import InputError
@@ -64,3 +65,54 @@ class TestLoadBookConfigErrors:
         )
         with pytest.raises(InputError, match="chapitres"):
             load_book_config(yaml_file)
+
+
+class TestBookConfigDocumentClass:
+    """Tests du champ document_class (Story 4.2)."""
+
+    _BASE: dict[str, object] = {
+        "titre": "T",
+        "auteur": "A",
+        "genre": "g",
+        "chapitres": [{"titre": "c", "fichier": "f"}],
+    }
+
+    def test_book_config_with_class_alias(self) -> None:
+        """BookConfig accepte le champ 'class' comme alias de document_class."""
+        config = BookConfig(**{**self._BASE, "class": "business-manual"})
+        assert config.document_class == "business-manual"
+
+    def test_book_config_default_class(self) -> None:
+        """Sans champ class, document_class vaut 'business-manual'."""
+        config = BookConfig(**self._BASE)
+        assert config.document_class == "business-manual"
+
+    def test_book_config_custom_class(self) -> None:
+        """BookConfig accepte une classe custom en kebab-case."""
+        config = BookConfig(**{**self._BASE, "class": "fiction-novel"})
+        assert config.document_class == "fiction-novel"
+
+    def test_book_config_class_validation_rejects_uppercase(self) -> None:
+        """Noms de classe avec majuscules sont rejetes."""
+        with pytest.raises(ValidationError, match="string_pattern_mismatch"):
+            BookConfig(**{**self._BASE, "class": "Business-Manual"})
+
+    def test_book_config_class_validation_rejects_spaces(self) -> None:
+        """Noms de classe avec espaces sont rejetes."""
+        with pytest.raises(ValidationError, match="string_pattern_mismatch"):
+            BookConfig(**{**self._BASE, "class": "business manual"})
+
+    def test_book_config_class_validation_rejects_special_chars(self) -> None:
+        """Noms de classe avec caracteres speciaux sont rejetes."""
+        with pytest.raises(ValidationError, match="string_pattern_mismatch"):
+            BookConfig(**{**self._BASE, "class": "business_manual!"})
+
+    def test_book_config_with_tokens_path(self) -> None:
+        """BookConfig accepte un chemin tokens optionnel."""
+        config = BookConfig(**{**self._BASE, "tokens": "custom-tokens.yaml"})
+        assert config.tokens == "custom-tokens.yaml"
+
+    def test_book_config_tokens_default_none(self) -> None:
+        """Sans champ tokens, la valeur est None."""
+        config = BookConfig(**self._BASE)
+        assert config.tokens is None
