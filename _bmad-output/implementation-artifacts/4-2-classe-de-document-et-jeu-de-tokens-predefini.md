@@ -1,6 +1,6 @@
 # Story 4.2 : Classe de document et jeu de tokens predefini
 
-Status: review
+Status: done
 
 ## Story
 

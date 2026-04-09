@@ -11,7 +11,10 @@ from typing import TYPE_CHECKING
 from bookforge.ast_nodes import (
     ASTNode,
     BookNode,
+    CalloutNode,
     ChapterNode,
+    ChapterSummaryNode,
+    FrameworkNode,
     HeadingNode,
     ImageNode,
     ParagraphNode,
@@ -178,6 +181,12 @@ def _render_node(node: ASTNode, typ_dir: Path) -> str:
         return _render_image(node, typ_dir)
     if isinstance(node, TableNode):
         return _render_table(node)
+    if isinstance(node, FrameworkNode):
+        return _render_framework(node)
+    if isinstance(node, CalloutNode):
+        return _render_callout(node)
+    if isinstance(node, ChapterSummaryNode):
+        return _render_chapter_summary(node)
     logger.warning(
         "Unknown node type %s at %s:%d",
         type(node).__name__,
@@ -226,6 +235,78 @@ def _render_table(table: TableNode) -> str:
         lines.append(f"  {row_cells},\n")
     lines.append(")\n\n")
     return "".join(lines)
+
+
+def _render_framework(node: FrameworkNode) -> str:
+    """Genere un encadre Typst pour un FrameworkNode."""
+    content = escape_typst(node.content)
+    return (
+        "#v(0.6em)\n"
+        "#block(\n"
+        "  width: 100%,\n"
+        "  breakable: false,\n"
+        "  inset: (x: 14pt, y: 12pt),\n"
+        "  radius: 4pt,\n"
+        '  stroke: rgb("#2563eb") + 1.5pt,\n'
+        '  fill: rgb("#eff6ff"),\n'
+        ")[\n"
+        "  #set par(first-line-indent: 0pt)\n"
+        '  #set text(size: 9.5pt)\n'
+        "  #grid(\n"
+        "    columns: (auto, 1fr),\n"
+        "    column-gutter: 8pt,\n"
+        '    text(weight: "bold", size: 9pt, fill: rgb("#2563eb"))'
+        "[FRAMEWORK],\n"
+        f"    [{content}],\n"
+        "  )\n"
+        "]\n"
+        "#v(0.6em)\n\n"
+    )
+
+
+def _render_callout(node: CalloutNode) -> str:
+    """Genere un encadre Typst pour un CalloutNode."""
+    content = escape_typst(node.content)
+    return (
+        "#v(0.6em)\n"
+        "#block(\n"
+        "  width: 100%,\n"
+        "  breakable: false,\n"
+        "  inset: (left: 14pt, rest: 12pt),\n"
+        "  radius: (right: 4pt),\n"
+        '  stroke: (left: rgb("#d97706") + 3pt),\n'
+        '  fill: rgb("#fffbeb"),\n'
+        ")[\n"
+        "  #set par(first-line-indent: 0pt)\n"
+        '  #set text(size: 9.5pt)\n'
+        f"  {content}\n"
+        "]\n"
+        "#v(0.6em)\n\n"
+    )
+
+
+def _render_chapter_summary(node: ChapterSummaryNode) -> str:
+    """Genere un encadre Typst pour un ChapterSummaryNode."""
+    content = escape_typst(node.content)
+    return (
+        "#v(1em)\n"
+        "#block(\n"
+        "  width: 100%,\n"
+        "  breakable: false,\n"
+        "  inset: (x: 14pt, y: 12pt),\n"
+        "  radius: 0pt,\n"
+        '  stroke: (top: rgb("#9ca3af") + 0.75pt,'
+        ' bottom: rgb("#9ca3af") + 0.75pt),\n'
+        '  fill: rgb("#f9fafb"),\n'
+        ")[\n"
+        "  #set par(first-line-indent: 0pt)\n"
+        '  #set text(size: 9pt, style: "italic")\n'
+        '  #smallcaps[*Resume*] #h(4pt) #text(fill: rgb("#9ca3af"))'
+        "[---] #h(4pt)\n"
+        f"  {content}\n"
+        "]\n"
+        "#v(0.8em)\n\n"
+    )
 
 
 def _render_title_page(config: BookConfig) -> str:

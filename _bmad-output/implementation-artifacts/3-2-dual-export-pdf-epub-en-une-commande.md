@@ -1,6 +1,6 @@
 # Story 3.2 : Dual export PDF + EPUB en une commande
 
-Status: review
+Status: done
 
 ## Story
 

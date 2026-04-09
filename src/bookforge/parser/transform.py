@@ -7,8 +7,16 @@ from markdown_it.token import Token
 
 from bookforge.ast_nodes.base import ASTNode
 from bookforge.ast_nodes.content import ImageNode, ParagraphNode, TableNode
+from bookforge.ast_nodes.semantic import CalloutNode, ChapterSummaryNode, FrameworkNode
 from bookforge.ast_nodes.structure import HeadingNode
 from bookforge.errors import InputError
+
+# Mapping tag name -> node class for semantic containers
+_SEMANTIC_NODE_MAP: dict[str, type] = {
+    "framework": FrameworkNode,
+    "callout": CalloutNode,
+    "chapter-summary": ChapterSummaryNode,
+}
 
 logger = logging.getLogger("bookforge.parser")
 
@@ -163,7 +171,22 @@ def tokens_to_ast(tokens: list[Token], source_file: Path) -> list[ASTNode]:
             i = next_i
             continue
 
-        # Skip tokens non geres (fence, hr, etc.)
+        # Semantic containers: semantic_<tag>_open / semantic_<tag>_close (Story 4.3)
+        if token.type.startswith("semantic_") and token.type.endswith("_open"):
+            tag = token.info
+            node_cls = _SEMANTIC_NODE_MAP.get(tag)
+            if node_cls is not None:
+                line = _line_number(token)
+                content = token.content
+                nodes.append(node_cls(
+                    content=content, source_file=source_file, line_number=line,
+                ))
+            # Skip the close token
+            i += 1  # skip open
+            i += 1  # skip close
+            continue
+
+        # Skip tokens non geres (fence, hr, close tokens, etc.)
         i += 1
 
     logger.debug(

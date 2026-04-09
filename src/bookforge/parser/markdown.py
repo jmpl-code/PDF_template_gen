@@ -28,5 +28,9 @@ def parse_markdown_file(path: Path) -> list[Token]:
 
     text = path.read_text(encoding="utf-8")
     md = MarkdownIt("commonmark").enable("table")
+    # Enregistrer le plugin de balises semantiques (Story 4.3)
+    from bookforge.parser.semantic import semantic_plugin
+
+    semantic_plugin(md)
     logger.debug("Parsing markdown file: %s", path)
     return md.parse(text)

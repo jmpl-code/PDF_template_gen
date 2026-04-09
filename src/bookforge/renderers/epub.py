@@ -15,6 +15,9 @@ import yaml
 from bookforge.ast_nodes import (
     ASTNode,
     BookNode,
+    CalloutNode,
+    ChapterSummaryNode,
+    FrameworkNode,
     HeadingNode,
     ImageNode,
     ParagraphNode,
@@ -30,6 +33,46 @@ matplotlib.use("Agg")
 
 logger = logging.getLogger("bookforge.renderers.epub")
 
+_SEMANTIC_CSS = """\
+/* Semantic containers (Story 4.3) */
+.framework {
+  border: 2px solid #2563eb;
+  background-color: #eff6ff;
+  padding: 1em;
+  margin: 1.5em 0;
+  border-radius: 4px;
+}
+.framework::before {
+  content: "Framework";
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  font-size: 0.9em;
+}
+.callout {
+  border-left: 4px solid #f59e0b;
+  background-color: #fffbeb;
+  padding: 1em;
+  margin: 1.5em 0;
+}
+.chapter-summary {
+  border-top: 1px solid #6b7280;
+  border-bottom: 1px solid #6b7280;
+  background-color: #f9fafb;
+  padding: 1em;
+  margin: 1.5em 0;
+  font-style: italic;
+}
+.chapter-summary::before {
+  content: "Resume du chapitre";
+  display: block;
+  font-weight: bold;
+  font-style: normal;
+  margin-bottom: 0.5em;
+  font-size: 0.9em;
+}
+"""
+
 _KINDLE_CSS = """\
 /* epub.css — style Kindle basique (Story 3.1) */
 body {
@@ -44,7 +87,7 @@ p { text-indent: 1em; margin: 0.2em 0; }
 img { max-width: 100%; height: auto; }
 table { border-collapse: collapse; width: 100%; }
 td, th { border: 1px solid #ccc; padding: 0.3em 0.5em; }
-"""
+""" + _SEMANTIC_CSS
 
 _MAX_TABLE_COLUMNS = 4
 
@@ -83,7 +126,7 @@ p {{ text-indent: {par_indent}; margin: 0.2em 0; }}
 img {{ max-width: 100%; height: auto; }}
 table {{ border-collapse: collapse; width: 100%; }}
 td, th {{ border: 1px solid #ccc; padding: 0.3em 0.5em; }}
-"""
+""" + _SEMANTIC_CSS
 
 
 def _render_table_as_image(table: TableNode, output_path: Path) -> None:
@@ -128,6 +171,12 @@ def _render_node_to_markdown(
     if isinstance(node, ImageNode):
         src_str = str(node.src).replace("\\", "/")
         return f"![{node.alt}]({src_str})\n\n"
+    if isinstance(node, FrameworkNode):
+        return f'<div class="framework">\n\n{node.content}\n\n</div>\n\n'
+    if isinstance(node, CalloutNode):
+        return f'<div class="callout">\n\n{node.content}\n\n</div>\n\n'
+    if isinstance(node, ChapterSummaryNode):
+        return f'<div class="chapter-summary">\n\n{node.content}\n\n</div>\n\n'
     if isinstance(node, TableNode):
         if len(node.headers) == 0:
             logger.warning(

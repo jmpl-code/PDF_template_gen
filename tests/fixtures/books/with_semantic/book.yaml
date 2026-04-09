@@ -1,0 +1,7 @@
+titre: "Livre Semantique"
+auteur: "JM"
+genre: "business"
+
+chapitres:
+  - titre: "Introduction"
+    fichier: "chapitres/01-introduction.md"

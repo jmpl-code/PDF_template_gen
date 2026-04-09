@@ -50,6 +50,7 @@ project: PDF_template_gen
 # Story 3-2 created: 2026-04-07
 # Story 4-1 created: 2026-04-07
 # Story 4-2 created: 2026-04-07
+# Story 4-3 created: 2026-04-07
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts
@@ -76,16 +77,16 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3 : Export EPUB Kindle
-  epic-3: in-progress
+  epic-3: done
   3-1-renderer-epub-via-pandoc: done
-  3-2-dual-export-pdf-epub-en-une-commande: review
+  3-2-dual-export-pdf-epub-en-une-commande: done
   epic-3-retrospective: optional
 
   # Epic 4 : Design tokens et personnalisation avancee
   epic-4: in-progress
   4-1-systeme-de-design-tokens-yaml-et-registre-d-assertions: done
-  4-2-classe-de-document-et-jeu-de-tokens-predefini: review
-  4-3-balises-semantiques-frameworks-callouts-chapter-summary: backlog
+  4-2-classe-de-document-et-jeu-de-tokens-predefini: done
+  4-3-balises-semantiques-frameworks-callouts-chapter-summary: review
   4-4-numerotation-differenciee-et-escape-hatch-typst: backlog
   epic-4-retrospective: optional
 
