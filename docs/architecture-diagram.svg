@@ -1,0 +1,283 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="10" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 3 L 0 6 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="10" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 3 L 0 6 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="10" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 3 L 0 6 z" fill="#22c55e"/>
+    </marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-color="#00000020"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="url(#bg)" rx="8"/>
+
+  <!-- Title -->
+  <text x="600" y="38" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">BookForge — Architecture Logicielle (Phase Finale)</text>
+  <text x="600" y="58" text-anchor="middle" font-size="12" fill="#64748b">Compilateur de livres : Markdown + book.yaml → PDF / EPUB / Couverture KDP</text>
+
+  <!-- ===== PHASE 1 : PARSE ===== -->
+  <rect x="30" y="75" width="330" height="280" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="195" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">PHASE 1 — Parse &amp; Validation</text>
+
+  <!-- Inputs -->
+  <rect x="50" y="112" width="120" height="38" rx="6" fill="#dbeafe" stroke="#60a5fa"/>
+  <text x="110" y="136" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">book.yaml</text>
+
+  <rect x="180" y="112" width="80" height="38" rx="6" fill="#dbeafe" stroke="#60a5fa"/>
+  <text x="220" y="136" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">*.md</text>
+
+  <rect x="270" y="112" width="75" height="38" rx="6" fill="#dbeafe" stroke="#60a5fa"/>
+  <text x="307" y="136" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">images/</text>
+
+  <!-- config/ -->
+  <rect x="50" y="165" width="135" height="50" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="117" y="185" text-anchor="middle" font-size="11" font-weight="600" fill="#1e3a8a">config/</text>
+  <text x="117" y="200" text-anchor="middle" font-size="9" fill="#475569">schema.py  validator.py</text>
+
+  <!-- parser/ -->
+  <rect x="200" y="165" width="145" height="50" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="272" y="185" text-anchor="middle" font-size="11" font-weight="600" fill="#1e3a8a">parser/</text>
+  <text x="272" y="200" text-anchor="middle" font-size="9" fill="#475569">markdown.py  transform.py</text>
+
+  <!-- ast_nodes/ -->
+  <rect x="80" y="230" width="210" height="50" rx="8" fill="#fefce8" stroke="#eab308" stroke-width="1.5"/>
+  <text x="185" y="250" text-anchor="middle" font-size="11" font-weight="600" fill="#854d0e">ast_nodes/</text>
+  <text x="185" y="265" text-anchor="middle" font-size="9" fill="#475569">BookNode  ChapterNode  HeadingNode  ImageNode  TableNode</text>
+
+  <!-- Output label -->
+  <rect x="80" y="295" width="210" height="28" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="185" y="314" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">BookConfig + BookNode (AST frozen)</text>
+
+  <!-- Arrows Phase 1 -->
+  <line x1="110" y1="150" x2="110" y2="165" stroke="#475569" marker-end="url(#arrow)"/>
+  <line x1="220" y1="150" x2="272" y2="165" stroke="#475569" marker-end="url(#arrow)"/>
+  <line x1="117" y1="215" x2="150" y2="230" stroke="#475569" marker-end="url(#arrow)"/>
+  <line x1="272" y1="215" x2="230" y2="230" stroke="#475569" marker-end="url(#arrow)"/>
+  <line x1="185" y1="280" x2="185" y2="295" stroke="#22c55e" marker-end="url(#arrow-green)"/>
+
+  <!-- ===== MIDDLE-END : TOKENS ===== -->
+  <rect x="380" y="75" width="200" height="150" rx="10" fill="#faf5ff" stroke="#c084fc" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="480" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#7c3aed">Tokens &amp; Resolution</text>
+
+  <!-- tokens/ -->
+  <rect x="400" y="112" width="160" height="50" rx="8" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="480" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="#5b21b6">tokens/</text>
+  <text x="480" y="147" text-anchor="middle" font-size="9" fill="#475569">registry.py  resolver.py</text>
+
+  <!-- Triplet -->
+  <rect x="395" y="178" width="170" height="35" rx="5" fill="#e9d5ff" stroke="#8b5cf6"/>
+  <text x="480" y="196" text-anchor="middle" font-size="9" font-weight="600" fill="#5b21b6">Triplet Immuable</text>
+  <text x="480" y="208" text-anchor="middle" font-size="8" fill="#6b21a8">(BookNode, ClassConfig, ResolvedTokenSet)</text>
+
+  <!-- Arrow from Phase 1 to Tokens -->
+  <line x1="360" y1="309" x2="390" y2="195" stroke="#475569" stroke-dasharray="5,3" marker-end="url(#arrow)"/>
+
+  <!-- ===== PASSES ===== -->
+  <rect x="380" y="240" width="200" height="115" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="480" y="263" text-anchor="middle" font-size="13" font-weight="700" fill="#c2410c">Passes de Transformation</text>
+
+  <rect x="400" y="278" width="160" height="30" rx="6" fill="#ffffff" stroke="#f97316" stroke-width="1"/>
+  <text x="480" y="298" text-anchor="middle" font-size="10" fill="#9a3412">passes/pdf_transform.py</text>
+
+  <rect x="400" y="314" width="160" height="30" rx="6" fill="#ffffff" stroke="#f97316" stroke-width="1"/>
+  <text x="480" y="334" text-anchor="middle" font-size="10" fill="#9a3412">passes/epub_transform.py</text>
+
+  <!-- Arrow Triplet to Passes -->
+  <line x1="480" y1="213" x2="480" y2="240" stroke="#475569" marker-end="url(#arrow)"/>
+
+  <!-- ===== PHASE 2 : RENDER (parallel) ===== -->
+  <rect x="620" y="75" width="350" height="330" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="795" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">PHASE 2 — Render (parallele)</text>
+
+  <!-- renderers/pdf.py -->
+  <rect x="640" y="112" width="160" height="75" rx="8" fill="#ffffff" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="720" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">renderers/pdf.py</text>
+  <text x="720" y="147" text-anchor="middle" font-size="9" fill="#475569">AST → .typ → typst compile</text>
+  <text x="720" y="160" text-anchor="middle" font-size="9" fill="#475569">TDM, liminaires, chapitres</text>
+  <text x="720" y="173" text-anchor="middle" font-size="8" fill="#64748b">+ templates/typst/*.typ</text>
+
+  <!-- renderers/epub.py -->
+  <rect x="640" y="200" width="160" height="55" rx="8" fill="#ffffff" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="720" y="220" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">renderers/epub.py</text>
+  <text x="720" y="235" text-anchor="middle" font-size="9" fill="#475569">AST → HTML → pandoc</text>
+  <text x="720" y="248" text-anchor="middle" font-size="8" fill="#64748b">MVP0.5</text>
+
+  <!-- renderers/cover.py -->
+  <rect x="640" y="268" width="160" height="55" rx="8" fill="#ffffff" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="720" y="288" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">renderers/cover.py</text>
+  <text x="720" y="303" text-anchor="middle" font-size="9" fill="#475569">Couv + 4e + dos + miniature</text>
+  <text x="720" y="316" text-anchor="middle" font-size="8" fill="#64748b">MVP1</text>
+
+  <!-- External binaries -->
+  <rect x="820" y="112" width="135" height="45" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="887" y="131" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">Typst (binaire)</text>
+  <text x="887" y="145" text-anchor="middle" font-size="9" fill="#78350f">typst compile</text>
+
+  <rect x="820" y="168" width="135" height="45" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="887" y="187" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">Pandoc (binaire)</text>
+  <text x="887" y="201" text-anchor="middle" font-size="9" fill="#78350f">pandoc --to epub</text>
+
+  <rect x="820" y="224" width="135" height="45" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="887" y="243" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">Matplotlib</text>
+  <text x="887" y="257" text-anchor="middle" font-size="9" fill="#78350f">Diagrammes PNG</text>
+
+  <!-- Arrows to externals -->
+  <line x1="800" y1="135" x2="820" y2="135" stroke="#475569" marker-end="url(#arrow)"/>
+  <line x1="800" y1="225" x2="820" y2="190" stroke="#475569" marker-end="url(#arrow)"/>
+
+  <!-- Output files -->
+  <rect x="640" y="340" width="310" height="50" rx="6" fill="#dcfce7" stroke="#22c55e"/>
+  <text x="795" y="358" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">output/</text>
+  <text x="795" y="374" text-anchor="middle" font-size="9" fill="#475569">livre-interieur.pdf  livre.epub  couverture.pdf  couverture-kindle.jpg</text>
+
+  <line x1="720" y1="323" x2="720" y2="340" stroke="#22c55e" marker-end="url(#arrow-green)"/>
+
+  <!-- Arrows Passes to Renderers -->
+  <line x1="560" y1="293" x2="640" y2="150" stroke="#475569" marker-end="url(#arrow)"/>
+  <line x1="560" y1="329" x2="640" y2="225" stroke="#475569" marker-end="url(#arrow)"/>
+
+  <!-- ===== PHASE 3 : QA ===== -->
+  <rect x="30" y="400" width="300" height="140" rx="10" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="180" y="423" text-anchor="middle" font-size="13" font-weight="700" fill="#991b1b">PHASE 3 — QA Programmatique</text>
+
+  <rect x="50" y="440" width="120" height="45" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="110" y="460" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">quality/</text>
+  <text x="110" y="475" text-anchor="middle" font-size="9" fill="#475569">checks.py</text>
+
+  <rect x="185" y="440" width="130" height="45" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="250" y="460" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">quality/</text>
+  <text x="250" y="475" text-anchor="middle" font-size="9" fill="#475569">reporter.py</text>
+
+  <text x="180" y="520" text-anchor="middle" font-size="9" fill="#991b1b">DPI >= 300, polices embarquees, marges KDP, orphelines/veuves</text>
+
+  <!-- Arrow from output to QA -->
+  <path d="M 640 375 Q 500 400 330 450" fill="none" stroke="#475569" marker-end="url(#arrow)"/>
+
+  <!-- ===== PHASE 4 : LLM JUDGE ===== -->
+  <rect x="370" y="400" width="280" height="165" rx="10" fill="#fdf4ff" stroke="#d946ef" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="510" y="423" text-anchor="middle" font-size="13" font-weight="700" fill="#86198f">PHASE 4 — LLM-Judge (optionnel)</text>
+  <text x="510" y="437" text-anchor="middle" font-size="9" fill="#a21caf">MVP2 — Mode offline disponible</text>
+
+  <rect x="390" y="450" width="115" height="45" rx="8" fill="#ffffff" stroke="#d946ef" stroke-width="1.5"/>
+  <text x="447" y="470" text-anchor="middle" font-size="11" font-weight="600" fill="#86198f">judge/</text>
+  <text x="447" y="485" text-anchor="middle" font-size="9" fill="#475569">protocol.py  loop.py</text>
+
+  <rect x="520" y="450" width="115" height="45" rx="8" fill="#ffffff" stroke="#d946ef" stroke-width="1.5"/>
+  <text x="577" y="470" text-anchor="middle" font-size="11" font-weight="600" fill="#86198f">judge/</text>
+  <text x="577" y="485" text-anchor="middle" font-size="9" fill="#475569">gemini.py  mock.py</text>
+
+  <!-- Feedback loop -->
+  <text x="510" y="515" text-anchor="middle" font-size="9" fill="#86198f">PDF → Screenshot → LLM → Actions → Tokens → Re-render</text>
+  <path d="M 510 525 C 510 555 600 555 600 530" fill="none" stroke="#d946ef" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <text x="580" y="550" text-anchor="middle" font-size="8" fill="#a21caf">boucle feedback</text>
+
+  <!-- Arrow QA to Judge -->
+  <line x1="330" y1="465" x2="390" y2="465" stroke="#475569" marker-end="url(#arrow)"/>
+
+  <!-- ===== PHASE 5 : EXPORT ===== -->
+  <rect x="690" y="430" width="280" height="135" rx="10" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="830" y="453" text-anchor="middle" font-size="13" font-weight="700" fill="#065f46">PHASE 5 — Export Final</text>
+
+  <rect x="710" y="468" width="240" height="82" rx="6" fill="#ffffff" stroke="#34d399"/>
+  <text x="830" y="488" text-anchor="middle" font-size="10" font-weight="600" fill="#065f46">output/</text>
+  <text x="830" y="504" text-anchor="middle" font-size="9" fill="#475569">livre-interieur.pdf</text>
+  <text x="830" y="517" text-anchor="middle" font-size="9" fill="#475569">couverture-complete.pdf  couverture-kindle.jpg</text>
+  <text x="830" y="530" text-anchor="middle" font-size="9" fill="#475569">livre.epub  metadata-kdp.json  qa-report.json</text>
+
+  <!-- Arrow Judge to Export -->
+  <line x1="650" y1="480" x2="690" y2="480" stroke="#475569" marker-end="url(#arrow)"/>
+
+  <!-- ===== CROSS-CUTTING: CLI + Pipeline + Errors ===== -->
+  <rect x="30" y="590" width="940" height="110" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="500" y="613" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">Transversal — Orchestration &amp; Infrastructure</text>
+
+  <!-- cli.py -->
+  <rect x="50" y="628" width="130" height="55" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+  <text x="115" y="648" text-anchor="middle" font-size="11" font-weight="600" fill="#0f172a">cli.py</text>
+  <text x="115" y="663" text-anchor="middle" font-size="9" fill="#475569">Typer entry point</text>
+  <text x="115" y="675" text-anchor="middle" font-size="8" fill="#64748b">Exit codes: 0/1/2/3</text>
+
+  <!-- pipeline.py -->
+  <rect x="200" y="628" width="160" height="55" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+  <text x="280" y="648" text-anchor="middle" font-size="11" font-weight="600" fill="#0f172a">pipeline.py</text>
+  <text x="280" y="663" text-anchor="middle" font-size="9" fill="#475569">Orchestrateur 5 phases</text>
+  <text x="280" y="675" text-anchor="middle" font-size="8" fill="#64748b">Progression par phase</text>
+
+  <!-- errors.py -->
+  <rect x="380" y="628" width="145" height="55" rx="8" fill="#fff1f2" stroke="#f43f5e" stroke-width="1.5"/>
+  <text x="452" y="648" text-anchor="middle" font-size="11" font-weight="600" fill="#be123c">errors.py</text>
+  <text x="452" y="663" text-anchor="middle" font-size="9" fill="#475569">BookForgeError</text>
+  <text x="452" y="675" text-anchor="middle" font-size="8" fill="#64748b">InputError  RenderError  LLMError</text>
+
+  <!-- external.py -->
+  <rect x="545" y="628" width="135" height="55" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+  <text x="612" y="648" text-anchor="middle" font-size="11" font-weight="600" fill="#0f172a">external.py</text>
+  <text x="612" y="663" text-anchor="middle" font-size="9" fill="#475569">run_external()</text>
+  <text x="612" y="675" text-anchor="middle" font-size="8" fill="#64748b">Subprocess uniforme</text>
+
+  <!-- logging -->
+  <rect x="700" y="628" width="130" height="55" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+  <text x="765" y="648" text-anchor="middle" font-size="11" font-weight="600" fill="#0f172a">Logging</text>
+  <text x="765" y="663" text-anchor="middle" font-size="9" fill="#475569">1 logger/module</text>
+  <text x="765" y="675" text-anchor="middle" font-size="8" fill="#64748b">timestamp + severite + composant</text>
+
+  <!-- Arrow cli to pipeline -->
+  <line x1="180" y1="655" x2="200" y2="655" stroke="#475569" marker-end="url(#arrow)"/>
+
+  <!-- ===== TECH STACK LEGEND ===== -->
+  <rect x="30" y="730" width="940" height="150" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#shadow)"/>
+  <text x="500" y="755" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">Stack Technique</text>
+
+  <!-- Python -->
+  <rect x="50" y="770" width="170" height="95" rx="6" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="135" y="790" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">Python >= 3.10</text>
+  <text x="135" y="808" text-anchor="middle" font-size="9" fill="#475569">Pydantic v2 (validation)</text>
+  <text x="135" y="822" text-anchor="middle" font-size="9" fill="#475569">markdown-it-py (parser)</text>
+  <text x="135" y="836" text-anchor="middle" font-size="9" fill="#475569">Typer (CLI)</text>
+  <text x="135" y="850" text-anchor="middle" font-size="9" fill="#475569">PyYAML (config)</text>
+
+  <!-- Build -->
+  <rect x="240" y="770" width="155" height="95" rx="6" fill="#faf5ff" stroke="#c084fc"/>
+  <text x="317" y="790" text-anchor="middle" font-size="11" font-weight="600" fill="#7c3aed">Build &amp; QA</text>
+  <text x="317" y="808" text-anchor="middle" font-size="9" fill="#475569">uv (deps + lockfile)</text>
+  <text x="317" y="822" text-anchor="middle" font-size="9" fill="#475569">Hatchling (build)</text>
+  <text x="317" y="836" text-anchor="middle" font-size="9" fill="#475569">Ruff (lint + format)</text>
+  <text x="317" y="850" text-anchor="middle" font-size="9" fill="#475569">mypy (types) + pytest</text>
+
+  <!-- External -->
+  <rect x="415" y="770" width="155" height="95" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="492" y="790" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">Binaires Externes</text>
+  <text x="492" y="808" text-anchor="middle" font-size="9" fill="#475569">Typst (PDF render)</text>
+  <text x="492" y="822" text-anchor="middle" font-size="9" fill="#475569">Pandoc (EPUB export)</text>
+  <text x="492" y="836" text-anchor="middle" font-size="9" fill="#475569">Matplotlib (diagrammes)</text>
+  <text x="492" y="850" text-anchor="middle" font-size="9" fill="#475569">subprocess via external.py</text>
+
+  <!-- Principles -->
+  <rect x="590" y="770" width="170" height="95" rx="6" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="675" y="790" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">Principes</text>
+  <text x="675" y="808" text-anchor="middle" font-size="9" fill="#475569">Offline-first (FR aucun reseau)</text>
+  <text x="675" y="822" text-anchor="middle" font-size="9" fill="#475569">Determinisme strict (NFR5)</text>
+  <text x="675" y="836" text-anchor="middle" font-size="9" fill="#475569">AST immutable (frozen)</text>
+  <text x="675" y="850" text-anchor="middle" font-size="9" fill="#475569">Cross-platform Win/Mac/Linux</text>
+
+  <!-- NFRs -->
+  <rect x="780" y="770" width="175" height="95" rx="6" fill="#fef2f2" stroke="#fca5a5"/>
+  <text x="867" y="790" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">Contraintes NFR</text>
+  <text x="867" y="808" text-anchor="middle" font-size="9" fill="#475569">Pipeline &lt; 5 min / 200 pages</text>
+  <text x="867" y="822" text-anchor="middle" font-size="9" fill="#475569">EPUB &lt; 2 min</text>
+  <text x="867" y="836" text-anchor="middle" font-size="9" fill="#475569">Preview &lt; 10 sec</text>
+  <text x="867" y="850" text-anchor="middle" font-size="9" fill="#475569">&lt; 5 deps runtime, LLM optionnel</text>
+
+  <!-- Version -->
+  <text x="1170" y="888" text-anchor="end" font-size="9" fill="#94a3b8">BookForge v0.1.0 — Architecture Phase Finale — 2026-04-06</text>
+</svg>

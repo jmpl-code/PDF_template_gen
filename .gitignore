@@ -30,6 +30,10 @@ __pycache__/
 *.egg-info/
 dist/
 
+# BookForge — local previews and scratch artifacts
+tmp_preview/
+diff_output.txt
+
 # System files
 .DS_Store
 Thumbs.db

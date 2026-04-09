@@ -1,6 +1,6 @@
 # Story 4.4: Numerotation differenciee et escape hatch Typst
 
-Status: review
+Status: done
 
 ## Story
 
