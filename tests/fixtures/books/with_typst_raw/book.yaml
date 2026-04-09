@@ -1,0 +1,12 @@
+titre: "Livre avec escape hatch Typst"
+sous_titre: "Fixture Story 4.4"
+auteur: "Test"
+genre: "business"
+
+chapitres:
+  - titre: "Introduction"
+    fichier: "chapitres/01-introduction.md"
+
+typst_raw: |
+  // Injection Typst native (escape hatch — FR27)
+  #let accent = rgb("#2563eb")

@@ -31,6 +31,7 @@ class BookConfig(BaseModel):
         pattern=r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
     )
     tokens: str | None = None
+    typst_raw: str | None = None
 
     @field_validator("chapitres")
     @classmethod

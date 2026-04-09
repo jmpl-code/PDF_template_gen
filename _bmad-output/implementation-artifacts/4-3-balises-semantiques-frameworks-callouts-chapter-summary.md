@@ -1,6 +1,6 @@
 # Story 4.3: Balises semantiques (frameworks, callouts, chapter-summary)
 
-Status: review
+Status: done
 
 ## Story
 

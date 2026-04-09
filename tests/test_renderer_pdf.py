@@ -679,18 +679,20 @@ class TestFrontMatter:
         self,
         tmp_path: Path,
     ) -> None:
-        """AC #6 : numerotation desactivee pour liminaires, reset avant contenu."""
+        """AC #6 : numerotation romaine liminaires + bascule arabe (Story 4.4, FR14)."""
         book = _make_book(tmp_path)
         config = _make_config()
         typ_path = tmp_path / "output.typ"
         generate_typst(book, typ_path, config=config)
         content = typ_path.read_text(encoding="utf-8")
-        assert "#set page(numbering: none)" in content
+        assert '#set page(numbering: "i")' in content
         assert 'numbering: "1"' in content
         assert "#counter(page).update(1)" in content
+        roman_pos = content.index('#set page(numbering: "i")')
+        arabic_pos = content.index('numbering: "1"')
         reset_pos = content.index("#counter(page).update(1)")
         chapter_pos = content.index("= Introduction")
-        assert reset_pos < chapter_pos
+        assert roman_pos < arabic_pos < reset_pos < chapter_pos
 
     def test_generate_typst_no_front_matter_without_config(
         self,
@@ -703,7 +705,7 @@ class TestFrontMatter:
         content = typ_path.read_text(encoding="utf-8")
         assert "#outline(" not in content
         assert "Tous droits reserves" not in content
-        assert "#set page(numbering: none)" not in content
+        assert '#set page(numbering: "i")' not in content
 
     def test_generate_typst_escapes_config_text(
         self,
@@ -892,9 +894,9 @@ class TestChapterPagesAndHeaders:
         typ_path = tmp_path / "output.typ"
         generate_typst(book, typ_path, config=config)
         content = typ_path.read_text(encoding="utf-8")
-        none_pos = content.index("#set page(numbering: none)")
+        roman_pos = content.index('#set page(numbering: "i")')
         header_pos = content.index("header: context {")
-        assert none_pos < header_pos
+        assert roman_pos < header_pos
 
     def test_chapter_start_page_no_header(
         self,
@@ -920,7 +922,7 @@ class TestChapterPagesAndHeaders:
         generate_typst(book, typ_path, config=config)
         content = typ_path.read_text(encoding="utf-8")
 
-        numbering_none_pos = content.index("#set page(numbering: none)")
+        numbering_roman_pos = content.index('#set page(numbering: "i")')
         outline_pos = content.index("#outline(indent: auto)")
         header_setup_pos = content.index("header: context {")
         counter_reset_pos = content.index("#counter(page).update(1)")
@@ -929,7 +931,7 @@ class TestChapterPagesAndHeaders:
         h1_intro = content.index("= Introduction")
         h1_methode = content.index("= Methode")
 
-        assert numbering_none_pos < outline_pos
+        assert numbering_roman_pos < outline_pos
         assert outline_pos < header_setup_pos
         assert header_setup_pos < counter_reset_pos
         assert counter_reset_pos < first_cs
@@ -1123,3 +1125,176 @@ class TestImageIntegration:
         generate_typst(book, typ_path)
         content = typ_path.read_text(encoding="utf-8")
         assert r"caption: [Figure \#1 avec \$pecial]," in content
+
+
+# --- Tests Story 4.4 : Numerotation differenciee et escape hatch Typst ---
+
+
+class TestStory44NumerotationEtEscapeHatch:
+    """Tests de la numerotation romaine/arabe et de l'escape hatch typst_raw."""
+
+    def test_front_matter_uses_roman_numbering(self, tmp_path: Path) -> None:
+        """AC #1 : les pages liminaires utilisent numbering: "i" (chiffres romains)."""
+        book = _make_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        assert '#set page(numbering: "i")' in content
+
+    def test_body_switches_to_arabic_and_resets_counter(self, tmp_path: Path) -> None:
+        """AC #1 : le corps bascule en "1" arabe et reinitialise le compteur de page."""
+        book = _make_book(tmp_path)
+        config = _make_config()
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        roman_pos = content.index('#set page(numbering: "i")')
+        arabic_pos = content.index('numbering: "1"')
+        reset_pos = content.index("#counter(page).update(1)")
+        chapter_pos = content.index("= Introduction")
+        assert roman_pos < arabic_pos < reset_pos < chapter_pos
+
+    def test_typst_raw_field_default_none(self) -> None:
+        """AC #3 : typst_raw est None par defaut."""
+        config = BookConfig(
+            titre="Sans escape hatch",
+            auteur="Test",
+            genre="business",
+            chapitres=[ChapterConfig(titre="Ch", fichier="ch.md")],
+        )
+        assert config.typst_raw is None
+
+    def test_typst_raw_field_accepts_string(self) -> None:
+        """AC #2 : typst_raw accepte une chaine arbitraire."""
+        raw = '#let accent = rgb("#ff0000")'
+        config = BookConfig(
+            titre="Avec escape hatch",
+            auteur="Test",
+            genre="business",
+            chapitres=[ChapterConfig(titre="Ch", fichier="ch.md")],
+            typst_raw=raw,
+        )
+        assert config.typst_raw == raw
+
+    def test_generate_typst_injects_typst_raw_verbatim(self, tmp_path: Path) -> None:
+        """AC #2 : le contenu de typst_raw est injecte tel quel, sans echappement."""
+        book = _make_book(tmp_path)
+        raw = '#let accent = rgb("#2563eb")\n#show heading: set text(fill: accent)'
+        config = BookConfig(
+            titre="Mon Livre Business",
+            sous_titre="Un sous-titre",
+            auteur="Jean Dupont",
+            genre="business",
+            isbn="978-2-1234-5678-0",
+            chapitres=[ChapterConfig(titre="Introduction", fichier="01-introduction.md")],
+            typst_raw=raw,
+        )
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "// --- BEGIN typst_raw (escape hatch — Story 4.4) ---" in content
+        assert "// --- END typst_raw ---" in content
+        assert raw in content
+        # Pas d'echappement : le '#' n'est PAS remplace par '\#'
+        assert r"\#let accent" not in content
+
+    def test_generate_typst_injection_position_between_template_and_front_matter(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #2 : injection placee apres le template et avant la page de titre."""
+        book = _make_book(tmp_path)
+        raw = "#let marker_4_4 = true"
+        config = BookConfig(
+            titre="Position Test",
+            auteur="Jean Dupont",
+            genre="business",
+            chapitres=[ChapterConfig(titre="Introduction", fichier="01-introduction.md")],
+            typst_raw=raw,
+        )
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        template_end_pos = content.index("// --- BEGIN CONTENT ---")
+        raw_pos = content.index("#let marker_4_4 = true")
+        title_pos = content.index('text(size: 28pt, weight: "bold")')
+        assert template_end_pos < raw_pos < title_pos
+
+    def test_generate_typst_no_raw_block_when_typst_raw_none(self, tmp_path: Path) -> None:
+        """AC #3 : sans typst_raw, aucun bloc BEGIN typst_raw dans le .typ."""
+        book = _make_book(tmp_path)
+        config = _make_config()  # typst_raw=None par defaut
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "BEGIN typst_raw" not in content
+
+    def test_generate_typst_no_raw_block_when_typst_raw_empty(self, tmp_path: Path) -> None:
+        """AC #3 : une chaine vide ne declenche pas l'injection."""
+        book = _make_book(tmp_path)
+        config = BookConfig(
+            titre="Empty",
+            auteur="Test",
+            genre="business",
+            chapitres=[ChapterConfig(titre="Ch", fichier="ch.md")],
+            typst_raw="",
+        )
+        typ_path = tmp_path / "output.typ"
+        generate_typst(book, typ_path, config=config)
+        content = typ_path.read_text(encoding="utf-8")
+        assert "BEGIN typst_raw" not in content
+
+    def test_compile_typst_error_mentions_typst_raw_when_flag_set(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #4 : une erreur Typst avec has_typst_raw=True mentionne 'typst_raw'."""
+        typ_path = tmp_path / "fake.typ"
+        typ_path.write_text("#set page(", encoding="utf-8")
+        pdf_path = tmp_path / "fake.pdf"
+        with patch("bookforge.renderers.pdf.run_external") as mock_run:
+            mock_run.side_effect = RenderError("Compilation Typst vers PDF: syntax error")
+            with pytest.raises(RenderError) as exc_info:
+                compile_typst(typ_path, pdf_path, has_typst_raw=True)
+        assert "typst_raw" in str(exc_info.value)
+        assert "book.yaml" in str(exc_info.value)
+
+    def test_compile_typst_error_unchanged_when_no_typst_raw(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """AC #4 : sans typst_raw, le message d'erreur n'est pas modifie."""
+        typ_path = tmp_path / "fake.typ"
+        typ_path.write_text("invalid", encoding="utf-8")
+        pdf_path = tmp_path / "fake.pdf"
+        with patch("bookforge.renderers.pdf.run_external") as mock_run:
+            mock_run.side_effect = RenderError("Compilation Typst vers PDF: broken")
+            with pytest.raises(RenderError) as exc_info:
+                compile_typst(typ_path, pdf_path, has_typst_raw=False)
+        assert "typst_raw" not in str(exc_info.value)
+
+    def test_render_pdf_passes_has_typst_raw_flag(self, tmp_path: Path) -> None:
+        """AC #4 : render_pdf propage le flag has_typst_raw a compile_typst."""
+        book = _make_book_in(tmp_path)
+        config = BookConfig(
+            titre="Trace",
+            auteur="Jean Dupont",
+            genre="business",
+            chapitres=[ChapterConfig(titre="Introduction", fichier="01-introduction.md")],
+            typst_raw="#let noop = 1",
+        )
+        with patch("bookforge.renderers.pdf.compile_typst") as mock_compile:
+            mock_compile.return_value = tmp_path / "livre-interieur.pdf"
+            render_pdf(book, tmp_path, config=config)
+            kwargs = mock_compile.call_args.kwargs
+            assert kwargs.get("has_typst_raw") is True
+
+    def test_render_pdf_has_typst_raw_false_without_config(self, tmp_path: Path) -> None:
+        """AC #3 : sans config, has_typst_raw reste False (retro-compat)."""
+        book = _make_book_in(tmp_path)
+        with patch("bookforge.renderers.pdf.compile_typst") as mock_compile:
+            mock_compile.return_value = tmp_path / "livre-interieur.pdf"
+            render_pdf(book, tmp_path)
+            kwargs = mock_compile.call_args.kwargs
+            assert kwargs.get("has_typst_raw") is False

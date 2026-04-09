@@ -400,6 +400,27 @@ class TestPipelineTokenIntegration:
         typ_content = (book_dir / "livre-interieur.typ").read_text(encoding="utf-8")
         assert "size: 13pt" in typ_content
 
+    def test_pipeline_with_typst_raw_injects_in_typ(self, tmp_path: Path) -> None:
+        """Story 4.4 : fixture with_typst_raw injecte le champ tel quel dans le .typ."""
+        book_dir = tmp_path / "book"
+        book_yaml = _copy_fixture_to("with_typst_raw", book_dir)
+        output_dir = tmp_path / "output"
+
+        with (
+            patch("bookforge.renderers.pdf.run_external") as mock_pdf_ext,
+            patch("bookforge.renderers.cover.run_external") as mock_cover_ext,
+        ):
+            mock_pdf_ext.side_effect = self._fake_compile
+            mock_cover_ext.side_effect = self._fake_compile
+
+            run_pipeline(book_path=book_yaml.resolve(), output_dir=output_dir)
+
+        typ_content = (book_dir / "livre-interieur.typ").read_text(encoding="utf-8")
+        assert "BEGIN typst_raw" in typ_content
+        assert '#let accent = rgb("#2563eb")' in typ_content
+        # Verifie aussi que la numerotation romaine est presente (Story 4.4 AC#1)
+        assert '#set page(numbering: "i")' in typ_content
+
     def test_pipeline_missing_tokens_file_raises_input_error(self, tmp_path: Path) -> None:
         """Fichier tokens reference mais introuvable leve InputError."""
         book_dir = tmp_path / "book"

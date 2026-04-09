@@ -348,8 +348,8 @@ def _render_toc() -> str:
 def _render_front_matter(config: BookConfig) -> str:
     """Assemble les pages liminaires : titre, copyright, dedicace, TDM."""
     parts: list[str] = []
-    # Desactiver la numerotation de page pour les liminaires
-    parts.append("#set page(numbering: none)\n\n")
+    # Numerotation romaine pour les pages liminaires (Story 4.4, FR14)
+    parts.append('#set page(numbering: "i")\n\n')
     # Page de titre
     parts.append(_render_title_page(config))
     parts.append("\n#pagebreak()\n\n")
@@ -438,6 +438,14 @@ def generate_typst(
     typ_dir = output_path.resolve().parent
     template = _build_template_from_tokens(tokens) if tokens is not None else _BASE_TEMPLATE
     content_parts: list[str] = [template, "\n"]
+    # Escape hatch Typst (Story 4.4, FR27) : injection brute apres le template,
+    # avant les pages liminaires et le contenu.
+    if config is not None and config.typst_raw:
+        content_parts.append("// --- BEGIN typst_raw (escape hatch — Story 4.4) ---\n")
+        content_parts.append(config.typst_raw)
+        if not config.typst_raw.endswith("\n"):
+            content_parts.append("\n")
+        content_parts.append("// --- END typst_raw ---\n\n")
     has_chapter_pages = config is not None
     if config is not None:
         content_parts.append(_render_front_matter(config))
@@ -456,12 +464,30 @@ def generate_typst(
     return output_path
 
 
-def compile_typst(typ_path: Path, pdf_path: Path) -> Path:
-    """Compile un fichier .typ en PDF via Typst."""
-    run_external(
-        ["typst", "compile", str(typ_path), str(pdf_path)],
-        description="Compilation Typst vers PDF",
-    )
+def compile_typst(
+    typ_path: Path,
+    pdf_path: Path,
+    *,
+    has_typst_raw: bool = False,
+) -> Path:
+    """Compile un fichier .typ en PDF via Typst.
+
+    Si ``has_typst_raw`` vaut True et que la compilation echoue, l'erreur
+    est enrichie pour signaler explicitement que le champ ``typst_raw`` de
+    ``book.yaml`` est une source possible de l'echec (Story 4.4, FR27).
+    """
+    try:
+        run_external(
+            ["typst", "compile", str(typ_path), str(pdf_path)],
+            description="Compilation Typst vers PDF",
+        )
+    except RenderError as e:
+        if has_typst_raw:
+            raise RenderError(
+                "Echec de compilation Typst — verifiez le champ 'typst_raw' "
+                f"de book.yaml. Details : {e}"
+            )
+        raise
     return pdf_path
 
 
@@ -476,6 +502,7 @@ def render_pdf(
     typ_path = output_dir / "livre-interieur.typ"
     pdf_path = output_dir / "livre-interieur.pdf"
     generate_typst(book, typ_path, config=config, tokens=tokens)
-    compile_typst(typ_path, pdf_path)
+    has_typst_raw = bool(config is not None and config.typst_raw)
+    compile_typst(typ_path, pdf_path, has_typst_raw=has_typst_raw)
     logger.debug("PDF generated: %s", pdf_path)
     return pdf_path
